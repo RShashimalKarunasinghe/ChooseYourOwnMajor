@@ -1,5 +1,5 @@
-let currentQuestionIndex = 0;
-const userAnswers = new Array(questions.length).fill(null);
+let currentQuestionIndex = 0; //replace with question_id
+// const userAnswers = new Array(questions.length).fill(null);
 
 function getCurrentQuestion() {
   return questions[currentQuestionIndex];
@@ -77,7 +77,7 @@ function buildPersonalitySummary(result) {
   const rankedMajors = Object.entries(result.totals)
     .sort((a, b) => b[1] - a[1])
     .slice(0, 3)
-    .map(([major]) => personalityTags[major]);
+    .map(([major]) => majorInfo[major].personalityTags);
 
   return rankedMajors;
 }

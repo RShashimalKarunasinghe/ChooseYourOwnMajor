@@ -1,3 +1,6 @@
+
+-- copy paste this into any database sql service you use i used xampp 
+
 CREATE DATABASE IF NOT EXISTS chooseyourmajor;
 USE chooseyourmajor;
 
