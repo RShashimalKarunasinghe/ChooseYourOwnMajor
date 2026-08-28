@@ -19,6 +19,10 @@ const totalRecords = document.getElementById("totalRecords");
 const topMajorStat = document.getElementById("topMajorStat");
 const averageMatch = document.getElementById("averageMatch");
 const analyticsChart = document.getElementById("analyticsChart");
+const languageManagementList = document.getElementById("languageManagementList");
+const saveLanguagesBtn = document.getElementById("saveLanguagesBtn");
+const resetLanguagesBtn = document.getElementById("resetLanguagesBtn");
+const languageSaveMessage = document.getElementById("languageSaveMessage");
 
 const majorKeys = ["cs", "se", "cyber", "ds"];
 const adminUser = "admin";
@@ -74,6 +78,44 @@ function showDashboard() {
   renderQuestions();
   renderRecords();
   renderAnalytics();
+  renderLanguageManagement();
+}
+
+function renderLanguageManagement() {
+  const enabledLanguages = getEnabledLanguages();
+
+  languageManagementList.innerHTML = "";
+
+  Object.entries(languageConfig).forEach(([code, language]) => {
+    const isEnabled = enabledLanguages.includes(code);
+
+    const card = document.createElement("div");
+
+    card.className = "language-admin-card";
+
+    card.innerHTML = `
+      <div>
+        <strong>${language.nativeName}</strong>
+        <span>${language.name}</span>
+      </div>
+
+      <label class="language-switch">
+        <input
+          type="checkbox"
+          class="language-toggle"
+          value="${code}"
+          ${isEnabled ? "checked" : ""}
+          ${code === "en" ? "disabled" : ""}
+        />
+
+        <span>
+          ${isEnabled ? "Enabled" : "Disabled"}
+        </span>
+      </label>
+    `;
+
+    languageManagementList.appendChild(card);
+  });
 }
 
 function showLogin() {
