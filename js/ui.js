@@ -41,13 +41,18 @@ function renderCurrentQuestion() {
   const question = getCurrentQuestion();
   const savedAnswer = getSavedAnswer(currentQuestionIndex);
 
+  const lang = localStorage.getItem("selectedLanguage") || "en";
+  const translatedQuestion =
+    questionTranslations[lang]?.[currentQuestionIndex] ||
+    questionTranslations.en[currentQuestionIndex];
+
   questionContainer.innerHTML = "";
 
   const card = document.createElement("article");
   card.className = "question-card";
 
   const title = document.createElement("h3");
-  title.textContent = `Q${currentQuestionIndex + 1}. ${question.text}`;
+  title.textContent = `Q${currentQuestionIndex + 1}. ${translatedQuestion.text}`;
 
   const optionsWrapper = document.createElement("div");
   optionsWrapper.className = "option-list";
@@ -69,17 +74,28 @@ function renderCurrentQuestion() {
     input.addEventListener("change", () => {
       saveAnswer(currentQuestionIndex, optionIndex);
       renderCurrentQuestion();
-      showAnswerFeedback(option.feedback);
+      applyLanguage(
+        localStorage.getItem("selectedLanguage") || "en"
+      );
+      updateQuizStats();
+      showAnswerFeedback(
+        translatedQuestion.feedback?.[optionIndex] ||
+        option.feedback
+      );
       formMessage.textContent = "";
     });
 
     const textBox = document.createElement("div");
 
+    const translatedOption =
+      translatedQuestion.options[optionIndex] ||
+      questionTranslations.en[currentQuestionIndex].options[optionIndex];
+
     const strong = document.createElement("strong");
-    strong.textContent = `${option.key}. ${option.text}`;
+    strong.textContent = `${option.key}. ${translatedOption.text}`;
 
     const small = document.createElement("small");
-    small.textContent = option.subtext;
+    small.textContent = translatedOption.subtext;
 
     textBox.appendChild(strong);
     textBox.appendChild(small);
@@ -103,6 +119,28 @@ function showAnswerFeedback(text) {
   answerFeedback.classList.remove("hidden");
 }
 
+function showSkippedMessage() {
+  const lang =
+    localStorage.getItem("selectedLanguage") || "en";
+
+  currentMessageType = "skipped";
+
+  formMessage.textContent =
+    translations[lang].skippedMessage;
+}
+
+function showValidationMessage() {
+  const lang =
+    localStorage.getItem("selectedLanguage") || "en";
+
+  const missing = findAllUnanswered();
+
+  currentMessageType = "validation";
+
+  formMessage.textContent =
+    `${translations[lang].unansweredMessage} ${missing.join(", ")}. ${translations[lang].answerBeforeSubmit}`;
+}
+
 function restoreFeedback() {
   const savedAnswer = getSavedAnswer(currentQuestionIndex);
 
@@ -112,14 +150,35 @@ function restoreFeedback() {
     return;
   }
 
-  const option = getCurrentQuestion().options[savedAnswer];
-  showAnswerFeedback(option.feedback);
+  const lang =
+    localStorage.getItem("selectedLanguage") || "en";
+
+  const translatedQuestion =
+    questionTranslations[lang]?.[currentQuestionIndex] ||
+    questionTranslations.en[currentQuestionIndex];
+
+  const option =
+    getCurrentQuestion().options[savedAnswer];
+
+  showAnswerFeedback(
+    translatedQuestion.feedback?.[savedAnswer] ||
+    option.feedback
+  );
 }
 
 function updateProgressUI() {
   const percent = getProgressPercent();
-  progressLabel.textContent = `Question ${currentQuestionIndex + 1} of ${questions.length}`;
+
+  const lang =
+    localStorage.getItem("selectedLanguage") || "en";
+
+  const t = translations[lang];
+
+  progressLabel.textContent =
+    `${t.questionOf} ${currentQuestionIndex + 1} ${t.of} ${questions.length}`;
+
   progressPercent.textContent = `${percent}%`;
+
   progressFill.style.width = `${percent}%`;
 }
 
@@ -136,37 +195,99 @@ function updateButtons() {
 }
 
 function renderResult(result) {
-  const topInfo = majorInfo[result.topMajor];
-  const secondInfo = majorInfo[result.secondMajor];
+  const lang = localStorage.getItem("selectedLanguage") || "en";
 
-  recommendedMajor.textContent = topInfo.title;
-  matchLevel.textContent = `${getMatchLabel(result.topPercent)} (${result.topPercent}%)`;
-  resultReason.textContent = topInfo.resultReason;
-  alternativeMajor.textContent = secondInfo.title;
-  alternativeMatch.textContent = `Alternative match: ${result.secondPercent}%`;
-  careerSuggestion.textContent = topInfo.careers;
+  const t = resultTranslations[lang] || resultTranslations.en;
 
+  const topMajor = {
+    title: t.majors[result.topMajor],
+    resultReason: t.resultReason[result.topMajor],
+    careers: t.careers[result.topMajor]
+  };
+
+  const secondMajor = {
+    title: t.majors[result.secondMajor]
+  };
+
+  // Recommended major
+  recommendedMajor.textContent =
+    topMajor.title;
+
+  // Match level
+  let matchLabel;
+
+  if (result.topPercent >= 40) {
+    matchLabel = t.strongMatch;
+  } else if (result.topPercent >= 30) {
+    matchLabel = t.goodMatch;
+  } else {
+    matchLabel = t.possibleMatch;
+  }
+
+  matchLevel.textContent =
+    `${matchLabel} (${result.topPercent}%)`;
+
+  // Result reason
+  resultReason.textContent =
+    topMajor.resultReason;
+
+  // Alternative major
+  alternativeMajor.textContent =
+    secondMajor.title;
+
+  alternativeMatch.textContent =
+    `${t.alternativeMatch}: ${result.secondPercent}%`;
+
+  // Career suggestion
+  careerSuggestion.textContent =
+    topMajor.careers;
+
+  // Profile tags
   renderProfileTags(buildPersonalitySummary(result));
+
+  // Score breakdown
   renderScoreBreakdown(result.totals);
 
+  // Explore button
   exploreBtn.onclick = () => {
-    alert(topInfo.exploreText);
+    alert(
+      majorInfo[result.topMajor].exploreText
+    );
   };
 }
 
 function renderProfileTags(tags) {
   profileTags.innerHTML = "";
 
+  const lang =
+    localStorage.getItem("selectedLanguage") || "en";
+
+  const t =
+    translations[lang] || translations.en;
+
   tags.forEach((tag) => {
     const span = document.createElement("span");
     span.className = "profile-tag";
-    span.textContent = tag;
+
+    const tagKey = Object.keys(personalityTags).find(
+      (key) => personalityTags[key] === tag
+    );
+
+    span.textContent =
+      t.personalityTags[tagKey] || tag;
+
     profileTags.appendChild(span);
   });
 }
 
 function renderScoreBreakdown(totals) {
   scoreBreakdown.innerHTML = "";
+
+  const lang =
+    localStorage.getItem("selectedLanguage") || "en";
+
+  const t =
+    translations[lang] || translations.en;
 
   Object.entries(totals)
     .sort((a, b) => b[1] - a[1])
@@ -175,7 +296,8 @@ function renderScoreBreakdown(totals) {
       card.className = "score-card";
 
       const title = document.createElement("span");
-      title.textContent = majorInfo[major].title;
+      title.textContent =
+        t.resultMajors[major].title;
 
       const strong = document.createElement("strong");
       strong.textContent = score;

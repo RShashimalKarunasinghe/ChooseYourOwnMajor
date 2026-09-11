@@ -27,8 +27,8 @@
 
       <div class="collapse navbar-collapse" id="mainNav">
         <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-2 mt-3 mt-lg-0">
-          <li class="nav-item"><a class="nav-link active" href="index.html">Quiz</a></li>
-          <li class="nav-item"><a class="nav-link" href="admin.html">Admin</a></li>
+          <li class="nav-item"><a id="navQuiz" class="nav-link active" href="index.html">Quiz</a></li>
+          <li class="nav-item"><a id="navAdmin" class="nav-link" href="admin.html">Admin</a></li>
         </ul>
       </div>
     </div>
@@ -39,9 +39,9 @@
       <div class="row align-items-center g-5">
         <div class="col-lg-7">
           <div class="hero__text">
-            <p class="eyebrow">ICT Project Sprint 1 Prototype</p>
-            <h1>Discover Your Ideal Tech Path</h1>
-            <p class="hero__description">
+            <p id="eyebrow" class="eyebrow">ICT Project Sprint 1 Prototype</p>
+            <h1 id="heroTitle">Discover Your Ideal Tech Path</h1>
+            <p id="heroDescription">
               Take a short quiz to explore which ICT major may fit your interests,
               strengths, and working preferences best.
             </p>
@@ -50,23 +50,35 @@
               <div class="highlight-card">
                 <span class="highlight-number">01</span>
                 <div>
-                  <strong>Takes 2–3 minutes</strong>
-                  <p>Quick, focused, and simple to complete.</p>
+                  <strong id="quickAndSimple">Takes 2–3 minutes</strong>
+                  <p id="quickAndSimpleDesc">Quick, focused, and simple to complete.</p>
                 </div>
               </div>
 
               <div class="highlight-card">
                 <span class="highlight-number">02</span>
                 <div>
-                  <strong>Personalised recommendation</strong>
-                  <p>Based on your work and learning preferences.</p>
+                  <strong id="personalised">Personalised recommendation</strong>
+                  <p id="personalisedDesc">Based on your work and learning preferences.</p>
                 </div>
               </div>
             </div>
 
             <div class="hero-actions">
               <button id="startBtn" class="btn btn--primary">Start Quiz</button>
-              <a class="btn btn--secondary" href="admin.html">Admin Login</a>
+              <a id="adminLoginBtn" class="btn btn--secondary" href="admin.html">Admin Login</a>
+            </div>
+            <div class="font-controls">
+              <button id="decreaseFont">A-</button>
+              <button id="increaseFont">A+</button>
+              <button id="contrastToggle">Accessibility Mode</button>
+              
+              <select id="languageSelect">
+                <option value="en">English</option>
+                <option value="zh">中文</option>
+                <option value="es">Español</option>
+                <option value="fr">Français</option>
+              </select>
             </div>
           </div>
         </div>
@@ -75,13 +87,17 @@
           <div class="hero-visual" aria-hidden="true">
             <div class="orb orb--red"></div>
             <div class="orb orb--white"></div>
-            <div class="visual-card visual-card--top">
-              <span>Pathway match</span>
-              <strong>Computer Science, Software, Cyber Security, or Data Science</strong>
-            </div>
+              <div class="visual-card visual-card--top">
+                <span id="pathwayMatch">Pathway match</span>
+                <strong id="pathwayMatchText">
+                  Computer Science, Software, Cyber Security, or Data Science
+                </strong>
+              </div>
             <div class="visual-card visual-card--bottom">
-              <span>Result summary</span>
-              <strong>Major recommendation with score breakdown</strong>
+              <span id="resultSummary">Result summary</span>
+              <strong id="resultSummaryText">
+                Major recommendation with score breakdown
+              </strong>
             </div>
           </div>
         </div>
@@ -105,6 +121,8 @@
       <div class="progress-bar">
         <div id="progressFill" class="progress-bar__fill"></div>
       </div>
+
+      <div id="quizStats" class="quiz-stats"></div>
 
       <form id="quizForm" novalidate>
         <div id="questionContainer"></div>
@@ -174,6 +192,7 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="js/data.js"></script>
   <script src="js/quiz.js"></script>
+  <script src="js/languages.js"></script>
   <script src="js/ui.js"></script>
   <script src="js/app.js"></script>
 </body>
