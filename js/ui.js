@@ -24,6 +24,7 @@ const alternativeMatch = document.getElementById("alternativeMatch");
 const careerSuggestion = document.getElementById("careerSuggestion");
 const profileTags = document.getElementById("profileTags");
 const scoreBreakdown = document.getElementById("scoreBreakdown");
+const recommendationEvidence = document.getElementById("recommendationEvidence");
 
 function showQuizSection() {
   quizSection.classList.remove("hidden");
@@ -231,6 +232,8 @@ function renderResult(result) {
   resultReason.textContent =
     topMajor.resultReason;
 
+  renderRecommendationEvidence(result.topMajor);
+
   // Alternative major
   alternativeMajor.textContent =
     secondMajor.title;
@@ -254,6 +257,75 @@ function renderResult(result) {
       majorInfo[result.topMajor].exploreText
     );
   };
+}
+
+function renderRecommendationEvidence(topMajor) {
+  recommendationEvidence.innerHTML = "";
+
+  const lang =
+    localStorage.getItem("selectedLanguage") || "en";
+
+  const t = resultTranslations[lang] || resultTranslations.en;
+
+  const heading = document.createElement("h5");
+  heading.textContent =
+    t.recommendationEvidenceTitle ||
+    resultTranslations.en.recommendationEvidenceTitle;
+
+  const list = document.createElement("ul");
+  list.className = "recommendation-evidence-list";
+
+  questions.forEach((question, questionIndex) => {
+    const selectedAnswer = userAnswers[questionIndex];
+
+    if (selectedAnswer === null) return;
+
+    const option = question.options[selectedAnswer];
+
+    if (!option || !option.scores) return;
+
+    const contribution = option.scores[topMajor];
+
+    // Only show answers that contributed to the recommended major
+    if (!contribution) return;
+
+    const translatedQuestion =
+      questionTranslations[lang]?.[questionIndex] ||
+      questionTranslations.en[questionIndex];
+
+    const translatedOption =
+      translatedQuestion.options[selectedAnswer] ||
+      questionTranslations.en[questionIndex].options[selectedAnswer];
+
+    const item = document.createElement("li");
+
+    const questionText = document.createElement("strong");
+    questionText.textContent =
+      `Q${questionIndex + 1}: ${translatedQuestion.text}`;
+
+    const answerText = document.createElement("span");
+    answerText.textContent =
+      `${translatedOption.text} (+${contribution} ${t.majors[topMajor]})`;
+
+    item.appendChild(questionText);
+    item.appendChild(answerText);
+
+    list.appendChild(item);
+  });
+
+  if (list.children.length === 0) {
+    const noEvidence = document.createElement("p");
+
+    noEvidence.textContent =
+      t.noRecommendationEvidence ||
+      resultTranslations.en.noRecommendationEvidence;
+
+    recommendationEvidence.appendChild(noEvidence);
+    return;
+  }
+
+  recommendationEvidence.appendChild(heading);
+  recommendationEvidence.appendChild(list);
 }
 
 function renderProfileTags(tags) {
