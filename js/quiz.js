@@ -1,5 +1,5 @@
 let currentQuestionIndex = 0;
-const userAnswers = new Array(questions.length).fill(null);
+// userAnswers is declared in data.js and filled by init() once questions load
 
 function getCurrentQuestion() {
   return questions[currentQuestionIndex];
@@ -41,18 +41,18 @@ function getProgressPercent() {
 }
 
 function calculateResult() {
-  const totals = {
-    cs: 0,
-    se: 0,
-    cyber: 0,
-    ds: 0
-  };
+  // One total per major from the database, so majors added in admin are scored too
+  const totals = {};
+  Object.keys(majorInfo).forEach((code) => {
+    totals[code] = 0;
+  });
 
   userAnswers.forEach((selectedOptionIndex, questionIndex) => {
     const option = questions[questionIndex].options[selectedOptionIndex];
     if (!option) return;
 
     Object.entries(option.scores).forEach(([major, score]) => {
+      if (totals[major] === undefined) totals[major] = 0;
       totals[major] += score;
     });
   });
@@ -80,7 +80,7 @@ function buildPersonalitySummary(result) {
   const rankedMajors = Object.entries(result.totals)
     .sort((a, b) => b[1] - a[1])
     .slice(0, 3)
-    .map(([major]) => personalityTags[major]);
+    .map(([major]) => personalityTags[major] || (majorInfo[major] && majorInfo[major].personalityTags) || major);
 
   return rankedMajors;
 }
@@ -107,9 +107,23 @@ function loadProgress() {
   const data = localStorage.getItem("quizProgress");
   if (!data) return;
 
-  const parsed = JSON.parse(data);
+  let parsed;
+  try {
+    parsed = JSON.parse(data);
+  } catch (error) {
+    localStorage.removeItem("quizProgress");
+    return;
+  }
 
-  currentQuestionIndex = parsed.currentQuestionIndex || 0;
+  // Questions are editable in admin, so a save from before an add/delete
+  // would put answers on the wrong questions. Discard it instead.
+  if (!parsed || !Array.isArray(parsed.userAnswers) ||
+      parsed.userAnswers.length !== questions.length) {
+    localStorage.removeItem("quizProgress");
+    return;
+  }
+
+  currentQuestionIndex = Math.min(parsed.currentQuestionIndex || 0, questions.length - 1);
 
   parsed.userAnswers.forEach((ans, i) => {
     userAnswers[i] = ans;
@@ -148,4 +162,12 @@ function updateQuizStats() {
 
   document.getElementById("quizStats").textContent =
     `${translations[lang].answered}: ${answered} | ${translations[lang].skippedCount}: ${skipped}`;
+}
+
+// Jump straight to a question (used by the dot navigator)
+function goToQuestion(index) {
+  if (index >= 0 && index < questions.length) {
+    currentQuestionIndex = index;
+    saveProgress();
+  }
 }

@@ -52,6 +52,71 @@ restartBtn.addEventListener("click", () => {
     translations[lang].startQuiz; // Reset start button text
 });
 
+// ── Skip — move forward without answering ────────────────────────────────
+const skipBtn = document.getElementById("skipBtn");
+if (skipBtn) {
+  skipBtn.addEventListener("click", () => {
+    formMessage.textContent = "";
+    currentMessageType = null;
+    goToNextQuestion();
+    renderCurrentQuestion();
+    applyLanguage(localStorage.getItem("selectedLanguage") || "en");
+    updateQuizStats();
+  });
+}
+
+// ── Email report ─────────────────────────────────────────────────────────
+const emailBtn = document.getElementById("emailBtn");
+if (emailBtn) {
+  emailBtn.addEventListener("click", () => {
+    const emailInput = document.getElementById("emailInput");
+    const email = emailInput ? emailInput.value.trim() : "";
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      alert("Please enter a valid email address.");
+      return;
+    }
+    sendEmailReport(email);
+  });
+}
+
+function sendEmailReport(email) {
+  var records = JSON.parse(localStorage.getItem("majorQuizRecords") || "[]");
+  if (records.length === 0) { alert("No result found to send."); return; }
+
+  var latest = records[records.length - 1];
+
+  var btn = emailBtn;
+  btn.disabled    = true;
+  btn.textContent = "Sending…";
+
+  fetch("send_email.php", {
+    method:  "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      to:              email,
+      topMajor:        latest.topMajorTitle,
+      matchPercent:    latest.matchPercent,
+      secondMajor:     latest.secondMajorTitle,
+      secondPercent:   latest.secondPercent,
+      date:            latest.date
+    })
+  })
+  .then(function (res) { return res.json(); })
+  .then(function (data) {
+    if (data.success) {
+      btn.textContent = "✓ Sent!";
+      setTimeout(function () { btn.textContent = "Send Report"; btn.disabled = false; }, 3000);
+    } else {
+      throw new Error(data.error || "Unknown error");
+    }
+  })
+  .catch(function (err) {
+    alert("Could not send email: " + err.message);
+    btn.textContent = "Send Report";
+    btn.disabled    = false;
+  });
+}
+
 function submitQuiz() {
   if (!areAllQuestionsAnswered()) {
     showValidationMessage();
@@ -88,8 +153,15 @@ function saveQuizRecord(result) {
   localStorage.setItem("majorQuizRecords", JSON.stringify(records));
 }
 
-window.addEventListener("DOMContentLoaded", () => {
- 
+window.addEventListener("DOMContentLoaded", async () => {
+  // Questions and majors come from the database, so load them first
+  const ok = await init();
+  if (!ok) {
+    document.body.innerHTML =
+      "<p style='color:#ff8e8e;padding:2rem;'>Could not load quiz data. Make sure the PHP server and database are running.</p>";
+    return;
+  }
+
   resetUI();
   loadProgress();
 
@@ -665,6 +737,7 @@ function applyLanguage(lang) {
 
   // Accessibility button
   contrastToggle.textContent = translations[lang].accessibilityMode;
+  applyExtraTranslations(lang);
 }
 
 const languageSelect = document.getElementById("languageSelect");

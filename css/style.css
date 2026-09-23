@@ -661,6 +661,81 @@ select {
     grid-template-columns: repeat(2, 1fr);
   }
 }
+/*animation*/
+/* Question card entrance */
+.question-card {
+  animation: questionIn 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes questionIn {
+  from { opacity: 0; transform: translateY(18px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* Options fade in one after another */
+.option-item {
+  animation: optionFade 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.option-item:nth-child(1) { animation-delay: 0.06s; }
+.option-item:nth-child(2) { animation-delay: 0.12s; }
+.option-item:nth-child(3) { animation-delay: 0.18s; }
+.option-item:nth-child(4) { animation-delay: 0.24s; }
+@keyframes optionFade {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Pop when an answer is picked */
+.option-item.selected {
+  animation: selectPop 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+@keyframes selectPop {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.025); }
+  100% { transform: scale(1); }
+}
+
+/* Progress bar glow */
+.progress-bar__fill { position: relative; }
+.progress-bar__fill::after {
+  content: "";
+  position: absolute;
+  right: 0; top: -3px; bottom: -3px;
+  width: 24px;
+  border-radius: 999px;
+  background: rgba(255, 170, 163, 0.65);
+  filter: blur(8px);
+  animation: glowPulse 1.6s ease-in-out infinite;
+}
+@keyframes glowPulse {
+  0%, 100% { opacity: 0.5; }
+  50%      { opacity: 1; }
+}
+
+/* Feedback slides in */
+.answer-feedback {
+  animation: feedbackIn 0.35s ease both;
+}
+@keyframes feedbackIn {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Result card entrance */
+.result-hero {
+  animation: resultHeroIn 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.1s both;
+}
+@keyframes resultHeroIn {
+  from { opacity: 0; transform: translateY(20px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* Respect "reduce motion" in the user's system settings */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
 
 @media (max-width: 768px) {
   .container {
@@ -803,4 +878,169 @@ select {
   background: yellow !important;
   color: black !important;
   border: 2px solid white !important;
+}
+
+/* ── Ui change──────────────────────────────────────────────────── */
+
+/* Skip button */
+.btn--ghost {
+  background: transparent;
+  border: 1px solid var(--border-strong);
+  color: var(--muted);
+  border-radius: 999px;
+  padding: 0.58rem 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.2s ease;
+  font-size: 0.9rem;
+}
+.btn--ghost:hover {
+  background: var(--secondary);
+  color: var(--text);
+}
+/* resume banner */
+.resume-banner {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+  align-items: center;
+  justify-content: space-between;
+  border-radius: var(--radius);
+  padding: clamp(18px, 2.5vw, 26px);
+  margin-bottom: 24px;
+  border: 1px solid var(--border);
+  background: linear-gradient(145deg, rgba(255,255,255,0.064), rgba(255,255,255,0.032));
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(20px);
+}
+
+.resume-banner__text strong {
+  display: block;
+  color: var(--text);
+  font-family: var(--title-font);
+  font-weight: 700;
+  margin-bottom: 4px;
+  letter-spacing: -0.02em;
+}
+
+.resume-banner__text p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.resume-banner__actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+/* Dot navigator */
+.dot-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 14px 0 20px;
+}
+.dot-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1.5px solid var(--border-strong);
+  background: var(--secondary);
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.18s ease;
+  font-family: var(--body-font);
+}
+.dot-btn:hover { transform: scale(1.12); border-color: var(--primary); color: var(--text); }
+.dot-btn--active    { border-color: var(--primary); background: rgba(239,61,61,0.18); color: #fff; }
+.dot-btn--answered  { border-color: rgba(239,61,61,0.45); background: rgba(239,61,61,0.1); color: var(--primary-mid); }
+.dot-btn--unanswered{ border-color: var(--border); background: transparent; color: var(--muted-2); }
+
+/* Quiz hint */
+.quiz-hint {
+  color: var(--muted);
+  font-size: 0.88rem;
+  margin: 4px 0 0;
+}
+
+/* Skipped warning */
+.skipped-warning {
+  margin: 10px 0 4px;
+  padding: 12px 16px;
+  border-radius: 14px;
+  border: 1px solid rgba(234,179,8,0.3);
+  background: rgba(234,179,8,0.07);
+  color: #fde68a;
+  font-size: 0.9rem;
+  line-height: 1.55;
+}
+
+/* Next steps list */
+.next-steps-list {
+  margin: 8px 0 0;
+  padding-left: 20px;
+  color: var(--text-soft);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.next-steps-list li { font-size: 0.95rem; line-height: 1.55; }
+
+/* Email panel */
+.email-panel { margin-top: 16px; }
+.email-panel p { color: var(--muted); font-size: 0.92rem; margin: 4px 0 14px; }
+.email-form {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.email-input {
+  flex: 1;
+  min-width: 220px;
+  padding: 0.6rem 1rem;
+  border-radius: 999px;
+  border: 1px solid var(--border-strong);
+  background: var(--secondary);
+  color: var(--text);
+  font-family: var(--body-font);
+  font-size: 0.95rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.email-input:focus { border-color: var(--primary); }
+.email-input::placeholder { color: var(--muted-2); }
+
+/* Next turns into a quieter Skip button while the question is unanswered */
+#nextBtn.btn--skip {
+  background: var(--secondary);
+  border-color: var(--border);
+  color: var(--text);
+  box-shadow: none;
+}
+#nextBtn.btn--skip:hover {
+  background: var(--secondary-dark);
+  color: var(--text);
+}
+
+/* Skip messages shown as the yellow warning box (only when there is a message) */
+#formMessage:not(:empty) {
+  margin: 14px 0 4px;
+  padding: 12px 16px;
+  border-radius: 14px;
+  border: 1px solid rgba(234, 179, 8, 0.3);
+  background: rgba(234, 179, 8, 0.07);
+  color: #fde68a;
+  font-size: 0.9rem;
+  font-weight: 600;
+  line-height: 1.55;
+}
+#formMessage:not(:empty)::before {
+  content: "\26A0\FE0F  ";
 }

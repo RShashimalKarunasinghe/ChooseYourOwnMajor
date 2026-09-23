@@ -120,6 +120,9 @@
                 <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#questionsTab" type="button" role="tab">Manage Questions</button>
               </li>
               <li class="nav-item" role="presentation">
+                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#majorsTab" type="button" role="tab">Manage Majors</button>
+              </li>
+              <li class="nav-item" role="presentation">
                 <button class="nav-link" data-bs-toggle="tab" data-bs-target="#recordsTab" type="button" role="tab">View Records</button>
               </li>
               <li class="nav-item" role="presentation">
@@ -214,6 +217,78 @@
                 </div>
               </div>
             </div>
+
+              <div class="tab-pane fade" id="majorsTab" role="tabpanel">
+                <div class="row g-4">
+
+                  <!-- Major Editor -->
+                  <div class="col-xl-5">
+                    <div class="admin-panel sticky-editor">
+                      <div class="panel-heading">
+                        <div>
+                          <p class="section-label">Major Editor</p>
+                          <h2 id="majorFormTitle">Add New Major</h2>
+                        </div>
+                        <span class="panel-pill">Editor</span>
+                      </div>
+
+                      <form id="majorForm">
+                        <input type="hidden" id="editMajorCode" value="" />
+
+                        <div class="mb-3">
+                          <label class="form-label" for="majorCodeInput">Major Code (e.g., 'ai')</label>
+                          <input id="majorCodeInput" class="form-control" type="text" placeholder="Short unique code" required />
+                        </div>
+
+                        <div class="mb-3">
+                          <label class="form-label" for="majorTitleInput">Title</label>
+                          <input id="majorTitleInput" class="form-control" type="text" placeholder="e.g., Artificial Intelligence" required />
+                        </div>
+
+                        <div class="mb-3">
+                          <label class="form-label" for="majorCareersInput">Career Suggestions</label>
+                          <textarea id="majorCareersInput" class="form-control" rows="2" placeholder="List potential careers" required></textarea>
+                        </div>
+
+                        <div class="mb-3">
+                          <label class="form-label" for="majorReasonInput">Result Reason</label>
+                          <textarea id="majorReasonInput" class="form-control" rows="2" placeholder="Why did they get this result?" required></textarea>
+                        </div>
+
+                        <div class="mb-3">
+                          <label class="form-label" for="majorExploreInput">Explore Text</label>
+                          <textarea id="majorExploreInput" class="form-control" rows="2" placeholder="What is this major about?" required></textarea>
+                        </div>
+
+                        <div class="mb-3">
+                          <label class="form-label" for="majorTagInput">Personality Tag</label>
+                          <input id="majorTagInput" class="form-control" type="text" placeholder="e.g., Future Innovator" required />
+                        </div>
+
+                        <div class="editor-actions">
+                          <button class="btn btn--primary" type="submit">Save Major</button>
+                          <button id="clearMajorFormBtn" class="btn btn--secondary" type="button">Clear</button>
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+
+                  <!-- Live Majors List -->
+                  <div class="col-xl-7">
+                    <div class="admin-panel">
+                      <div class="panel-heading">
+                        <div>
+                          <p class="section-label">Current Offerings</p>
+                          <h2>ICT Majors</h2>
+                        </div>
+                        <span class="panel-pill">Live List</span>
+                      </div>
+                      <div id="majorsList" class="question-list"></div>
+                    </div>
+                  </div>
+
+                </div>
+              </div>
 
             <div class="tab-pane fade" id="recordsTab" role="tabpanel">
               <div class="admin-panel">
@@ -323,6 +398,12 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="js/data.js"></script>
   <script src="js/languages.js"></script>
-  <script src="js/admin.js"></script>
+   <script>
+    init().then(function () {
+      var s  = document.createElement("script");
+      s.src  = "js/admin.js";
+      document.body.appendChild(s);
+    });
+  </script>
 </body>
 </html>

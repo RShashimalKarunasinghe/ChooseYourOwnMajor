@@ -24,9 +24,36 @@ const saveLanguagesBtn = document.getElementById("saveLanguagesBtn");
 const resetLanguagesBtn = document.getElementById("resetLanguagesBtn");
 const languageSaveMessage = document.getElementById("languageSaveMessage");
 
-const majorKeys = ["cs", "se", "cyber", "ds"];
+// Majors editor (JOE-9 / JOE-12)
+const majorForm = document.getElementById("majorForm");
+const majorsList = document.getElementById("majorsList");
+const editMajorCode = document.getElementById("editMajorCode");
+const majorCodeInput = document.getElementById("majorCodeInput");
+const majorTitleInput = document.getElementById("majorTitleInput");
+const majorCareersInput = document.getElementById("majorCareersInput");
+const majorReasonInput = document.getElementById("majorReasonInput");
+const majorExploreInput = document.getElementById("majorExploreInput");
+const majorTagInput = document.getElementById("majorTagInput");
+const majorFormTitle = document.getElementById("majorFormTitle");
+const clearMajorFormBtn = document.getElementById("clearMajorFormBtn");
+
+// Majors are loaded from the database, so this is derived rather than hardcoded
+let majorKeys = [];
 const adminUser = "admin";
 const adminPass = "admin123";
+
+/** Load majors from the database into majorInfo + majorKeys. */
+async function refreshMajors() {
+  const res = await fetch("get_majors.php");
+  const majorsArray = await res.json();
+
+  majorInfo = {};
+  majorsArray.forEach(function (major) {
+    majorInfo[major.code] = major;
+  });
+
+  majorKeys = Object.keys(majorInfo);
+}
 
 function isLoggedIn() {
   return sessionStorage.getItem("majorAdminLoggedIn") === "true";
@@ -72,9 +99,19 @@ function renderOptionInputs() {
   });
 }
 
-function showDashboard() {
+async function showDashboard() {
   loginPanel.classList.add("hidden");
   dashboardPanel.classList.remove("hidden");
+
+  // Majors must load first — the question editor builds score inputs from them
+  try {
+    await refreshMajors();
+  } catch (err) {
+    alert("Could not load majors from the database: " + err.message);
+    return;
+  }
+
+  renderMajors();
   renderQuestions();
   renderRecords();
   renderAnalytics();
@@ -143,6 +180,145 @@ logoutBtn.addEventListener("click", () => {
   showLogin();
 });
 
+// ── Majors CRUD (JOE-9 / JOE-12) ──────────────────────────────────────────────
+// Every change below is written straight to the `majors` table via
+// manage_majors.php, so admin edits survive a reload and are shared by
+// every visitor — not just this browser.
+
+function renderMajors() {
+  majorsList.innerHTML = "";
+
+  majorKeys.forEach((code) => {
+    const major = majorInfo[code];
+    const div = document.createElement("div");
+    div.className = "question-admin-card";
+    div.innerHTML = `
+      <div class="d-flex justify-content-between gap-3 flex-wrap">
+        <div>
+          <span class="section-label">Code: ${escapeHtml(code)}</span>
+          <h5>${escapeHtml(major.title)}</h5>
+          <p class="mb-0 text-secondary-emphasis">Tag: ${escapeHtml(major.personalityTags || "")}</p>
+        </div>
+        <div class="d-flex gap-2 align-items-start">
+          <button class="btn btn--secondary btn-sm" data-edit-major="${escapeHtml(code)}">Edit</button>
+          <button class="btn btn--secondary btn-sm" data-delete-major="${escapeHtml(code)}">Delete</button>
+        </div>
+      </div>`;
+    majorsList.appendChild(div);
+  });
+
+  document.querySelectorAll("[data-edit-major]").forEach((btn) => {
+    btn.addEventListener("click", () => loadMajorForEdit(btn.dataset.editMajor));
+  });
+
+  document.querySelectorAll("[data-delete-major]").forEach((btn) => {
+    btn.addEventListener("click", () => deleteMajor(btn.dataset.deleteMajor));
+  });
+}
+
+majorForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+
+  const isEditing = editMajorCode.value !== "";
+  const code = isEditing
+    ? editMajorCode.value
+    : majorCodeInput.value.trim().toLowerCase();
+
+  if (!code) {
+    alert("Please enter a valid Major Code.");
+    return;
+  }
+
+  const payload = {
+    code:            code,
+    title:           majorTitleInput.value.trim(),
+    careers:         majorCareersInput.value.trim(),
+    resultReason:    majorReasonInput.value.trim(),
+    exploreText:     majorExploreInput.value.trim(),
+    personalityTags: majorTagInput.value.trim()
+  };
+
+  const url = isEditing
+    ? `manage_majors.php?code=${encodeURIComponent(code)}`
+    : "manage_majors.php";
+
+  try {
+    const res = await fetch(url, {
+      method: isEditing ? "PUT" : "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || `Request failed (${res.status})`);
+
+    // Re-read from the database so the UI reflects what was actually stored
+    await refreshMajors();
+    clearMajorForm();
+    renderMajors();
+    renderOptionInputs(); // question editor needs a score box for the new major
+
+    alert("Major saved to the database.");
+  } catch (err) {
+    alert("Could not save major: " + err.message);
+  }
+});
+
+function clearMajorForm() {
+  editMajorCode.value = "";
+  majorCodeInput.disabled = false;
+  majorFormTitle.textContent = "Add New Major";
+  majorForm.reset();
+}
+
+clearMajorFormBtn.addEventListener("click", clearMajorForm);
+
+function loadMajorForEdit(code) {
+  const major = majorInfo[code];
+  if (!major) return;
+
+  editMajorCode.value = code;
+  majorCodeInput.value = code;
+  majorCodeInput.disabled = true; // the code is the primary key — don't allow edits
+
+  majorTitleInput.value = major.title || "";
+  majorCareersInput.value = major.careers || "";
+  majorReasonInput.value = major.resultReason || "";
+  majorExploreInput.value = major.exploreText || "";
+  majorTagInput.value = major.personalityTags || "";
+
+  majorFormTitle.textContent = "Edit Major";
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+async function deleteMajor(code) {
+  if (majorKeys.length <= 2) {
+    alert("You must have at least two majors for the quiz to work.");
+    return;
+  }
+
+  const title = majorInfo[code] ? majorInfo[code].title : code;
+  if (!confirm(`Delete the ${title} major? This also removes its scores from all questions.`)) {
+    return;
+  }
+
+  try {
+    const res = await fetch(`manage_majors.php?code=${encodeURIComponent(code)}`, {
+      method: "DELETE"
+    });
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || `Request failed (${res.status})`);
+
+    await refreshMajors();//bug
+    clearMajorForm();
+    renderMajors();
+    renderOptionInputs();
+  } catch (err) {
+    alert("Could not delete major: " + err.message);
+  }
+}
+
 function renderQuestions() {
   questionsList.innerHTML = "";
 
@@ -199,18 +375,36 @@ function loadQuestionForEdit(index) {
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
-function deleteQuestion(index) {
+async function deleteQuestion(index) {
   if (!confirm("Delete this question?")) {
     return;
   }
 
-  questions.splice(index, 1);
-  saveQuestionsToStorage(questions);
-  clearQuestionForm();
-  renderQuestions();
+  const questionId = questions[index].id;
+
+  try {
+    const response = await fetch("update_questions.php", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ question_id: questionId })
+    });
+    const result = await response.json();
+
+    if (result.success) {
+      // reload questions from database
+      questions = await loadQuestions();
+      userAnswers = new Array(questions.length).fill(null);
+      clearQuestionForm();
+      renderQuestions();
+    } else {
+      alert("Failed to delete question: " + (result.error || "Unknown error"));
+    }
+  } catch (error) {
+    alert("Error deleting question: " + error.message);
+  }
 }
 
-questionForm.addEventListener("submit", (event) => {
+questionForm.addEventListener("submit", async (event) => {
   event.preventDefault();
 
   const text = questionText.value.trim();
@@ -220,7 +414,6 @@ questionForm.addEventListener("submit", (event) => {
   }
 
   const newQuestion = {
-    id: editIndex.value === "" ? Date.now() : questions[Number(editIndex.value)].id,
     text,
     options: ["A", "B", "C", "D"].map((letter, i) => {
       const scores = {};
@@ -251,16 +444,38 @@ questionForm.addEventListener("submit", (event) => {
     return;
   }
 
-  if (editIndex.value === "") {
-    questions.push(newQuestion);
-  } else {
-    questions[Number(editIndex.value)] = newQuestion;
-  }
+  try {
+    let body;
 
-  saveQuestionsToStorage(questions);
-  clearQuestionForm();
-  renderQuestions();
-  alert("Question saved successfully.");
+    if (editIndex.value === "") {
+      // adding a new question
+      body = newQuestion;
+    } else {
+      // updating an existing question
+      body = newQuestion;
+      body.question_id = questions[Number(editIndex.value)].id;
+    }
+
+    const response = await fetch("update_questions.php", {
+      method:  editIndex.value === "" ? "POST" : "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body)
+    });
+    const result = await response.json();
+
+    if (result.success) {
+      // reload questions from database
+      questions = await loadQuestions();
+      userAnswers = new Array(questions.length).fill(null);
+      clearQuestionForm();
+      renderQuestions();
+      alert("Question saved successfully.");
+    } else {
+      alert("Failed to save question: " + (result.error || "Unknown error"));
+    }
+  } catch (error) {
+    alert("Error saving question: " + error.message);
+  }
 });
 
 function clearQuestionForm() {
@@ -275,12 +490,7 @@ function clearQuestionForm() {
 clearFormBtn.addEventListener("click", clearQuestionForm);
 
 resetQuestionsBtn.addEventListener("click", () => {
-  if (confirm("Reset all questions to the default version?")) {
-    questions = JSON.parse(JSON.stringify(defaultQuestions));
-    saveQuestionsToStorage(questions);
-    clearQuestionForm();
-    renderQuestions();
-  }
+  alert("To reset questions to default, re-run the SQL file (chooseyourmajor.sql) in your database.");
 });
 
 function renderRecords() {
@@ -316,7 +526,7 @@ function showRecordDetails(recordId) {
   }
 
   const answers = record.answers.map((answerIndex, questionIndex) => {
-    const question = questions[questionIndex] || defaultQuestions[questionIndex];
+    const question = questions[questionIndex] || null;
     const option = question && question.options ? question.options[answerIndex] : null;
     return `
       <li>
@@ -428,6 +638,10 @@ document.querySelectorAll('[data-bs-toggle="tab"]').forEach((tabButton) => {
     renderAnalytics();
   });
 });
+
+// data.js init() has already populated majorInfo by the time this file loads,
+// so seed majorKeys from it before the first render.
+majorKeys = Object.keys(majorInfo);
 
 renderOptionInputs();
 

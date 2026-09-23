@@ -124,6 +124,9 @@
 
       <div id="quizStats" class="quiz-stats"></div>
 
+      <!-- Dot navigator -->
+      <div id="dotNav" class="dot-nav" role="navigation" aria-label="Jump to question"></div>
+
       <form id="quizForm" novalidate>
         <div id="questionContainer"></div>
 
@@ -172,6 +175,7 @@
         <p id="careerSuggestion"></p>
       </div>
 
+
       <div class="result-panel">
         <h4>Your Profile</h4>
         <div id="profileTags" class="tag-list"></div>
@@ -181,8 +185,21 @@
         <h4>Score Breakdown</h4>
         <div id="scoreBreakdown" class="score-grid"></div>
       </div>
-
-      <div class="result-actions">
+       <!-- Next steps -->
+      <div class="result-panel">
+        <h4>Suggested Next Steps</h4>
+        <ul id="nextStepsList" class="next-steps-list"></ul>
+      </div>
+      <!-- Email report -->
+      <div class="result-panel email-panel">
+        <h4>Get Your Report by Email</h4>
+        <p>Enter your email address to receive a summary of your result.</p>
+        <div class="email-form">
+          <input id="emailInput" type="email" class="email-input" placeholder="your@email.com" autocomplete="email" />
+          <button id="emailBtn" type="button" class="btn btn--primary">Send Report</button>
+        </div>
+      </div>
+        <div class="result-actions">
         <button id="exploreBtn" type="button" class="btn btn--primary">Explore This Major</button>
         <button id="restartBtn" type="button" class="btn btn--secondary">Restart Quiz</button>
       </div>
