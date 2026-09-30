@@ -32,12 +32,35 @@ function goToPreviousQuestion() {
   }
 }
 
+// Jump straight to a question (used by the dot navigator)
+function goToQuestion(index) {
+  if (index >= 0 && index < questions.length) {
+    currentQuestionIndex = index;
+    saveProgress();
+  }
+}
+
 function isLastQuestion() {
   return currentQuestionIndex === questions.length - 1;
 }
 
+function getAnsweredCount() {
+  return userAnswers.filter((answer) => answer !== null).length;
+}
+
+// Progress is how many questions are answered, not how far along you are,
+// so skipping ahead doesn't fill the bar.
 function getProgressPercent() {
-  return Math.round(((currentQuestionIndex + 1) / questions.length) * 100);
+  return Math.round((getAnsweredCount() / questions.length) * 100);
+}
+
+// Indexes (0-based) of questions with no answer
+function getUnansweredIndexes() {
+  const missing = [];
+  userAnswers.forEach((answer, index) => {
+    if (answer === null) missing.push(index);
+  });
+  return missing;
 }
 
 function calculateResult() {
@@ -48,12 +71,13 @@ function calculateResult() {
   });
 
   userAnswers.forEach((selectedOptionIndex, questionIndex) => {
+    if (selectedOptionIndex === null) return;
     const option = questions[questionIndex].options[selectedOptionIndex];
     if (!option) return;
 
     Object.entries(option.scores).forEach(([major, score]) => {
-      if (totals[major] === undefined) totals[major] = 0;
-      totals[major] += score;
+      // Ignore scores for a major that has since been deleted in admin
+      if (totals[major] !== undefined) totals[major] += score;
     });
   });
 
@@ -76,13 +100,13 @@ function calculateResult() {
   };
 }
 
+// Codes of the three highest-scoring majors; ui.js turns them into
+// translated profile tags.
 function buildPersonalitySummary(result) {
-  const rankedMajors = Object.entries(result.totals)
+  return Object.entries(result.totals)
     .sort((a, b) => b[1] - a[1])
     .slice(0, 3)
-    .map(([major]) => personalityTags[major] || (majorInfo[major] && majorInfo[major].personalityTags) || major);
-
-  return rankedMajors;
+    .map(([major]) => major);
 }
 
 function resetQuizState() {
@@ -130,44 +154,7 @@ function loadProgress() {
   });
 }
 
-// Call loadProgress when the quiz is initialized
-function areAllQuestionsAnswered() {
-  return userAnswers.every(answer => answer !== null);
-}
-
-function findFirstUnanswered() {
-  return userAnswers.findIndex(answer => answer === null);
-}
-
-// This function can be used to find all unanswered questions if you want to show a list of them
-function findAllUnanswered() {
-  const missing = [];
-
-  userAnswers.forEach((answer, index) => {
-    if (answer === null) {
-      missing.push(index + 1); // question number
-    }
-  });
-
-  return missing;
-}
-
-function updateQuizStats() {
-  const answered = userAnswers.filter(answer => answer !== null).length;
-
-  const skipped = userAnswers.filter(answer => answer === null).length;
-
-  const lang =
-    localStorage.getItem("selectedLanguage") || "en";
-
-  document.getElementById("quizStats").textContent =
-    `${translations[lang].answered}: ${answered} | ${translations[lang].skippedCount}: ${skipped}`;
-}
-
-// Jump straight to a question (used by the dot navigator)
-function goToQuestion(index) {
-  if (index >= 0 && index < questions.length) {
-    currentQuestionIndex = index;
-    saveProgress();
-  }
+// True when saved progress has at least one answer (drives the resume banner)
+function hasInProgressAnswers() {
+  return getAnsweredCount() > 0;
 }

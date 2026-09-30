@@ -11,15 +11,6 @@ let majorInfo   = {};
 let questions   = [];
 let userAnswers = [];
 
-// Fallback profile tags for the four original majors.
-// Majors added through the admin page use their own personalityTags field.
-const personalityTags = {
-  cs: "Problem Solver",
-  se: "Creative Builder",
-  cyber: "Risk Protector",
-  ds: "Insight Explorer"
-};
-
 async function loadQuestions() {
   const res = await fetch("get_questions.php");
   if (!res.ok) throw new Error("get_questions.php returned " + res.status);

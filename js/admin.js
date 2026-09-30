@@ -23,6 +23,10 @@ const languageManagementList = document.getElementById("languageManagementList")
 const saveLanguagesBtn = document.getElementById("saveLanguagesBtn");
 const resetLanguagesBtn = document.getElementById("resetLanguagesBtn");
 const languageSaveMessage = document.getElementById("languageSaveMessage");
+const quizStarts = document.getElementById("quizStarts");
+const quizCompletions = document.getElementById("quizCompletions");
+const quizAbandoned = document.getElementById("quizAbandoned");
+const languageSelect = document.getElementById("languageSelect");
 
 // Majors editor (JOE-9 / JOE-12)
 const majorForm = document.getElementById("majorForm");
@@ -41,6 +45,68 @@ const clearMajorFormBtn = document.getElementById("clearMajorFormBtn");
 let majorKeys = [];
 const adminUser = "admin";
 const adminPass = "admin123";
+
+// ── Translation ──────────────────────────────────────────────────────────────
+// All text comes from uiText in languages.js via t(). Fixed labels use
+// data-i18n attributes (also inside generated HTML), so applyLanguage()
+// updates them without redrawing — form fields keep what was typed.
+// Text with values in it (counts, codes, dates) is redrawn on language change.
+
+let loginFailed = false;          // show the "incorrect password" message
+let languageMessageKey = null;    // message under the Manage Languages buttons
+let openRecordId = null;          // record whose details are open
+
+function renderLoginMessage() {
+  loginMessage.textContent = loginFailed ? t("loginError") : "";
+}
+
+function renderLanguageMessage() {
+  languageSaveMessage.textContent = languageMessageKey ? t(languageMessageKey) : "";
+}
+
+// Questions and majors are edited in English (that's what the database holds).
+// When the card shows a translation, the English original goes underneath so
+// it's clear what the edit form will change.
+function englishOriginal(shown, english) {
+  if (!english || shown === english) return "";
+  return `<p class="admin-card-original" lang="en">EN: ${escapeHtml(english)}</p>`;
+}
+
+// Switch a heading to another key (e.g. Add Question -> Edit Question) and keep
+// it that way when the language changes.
+function setI18n(element, key) {
+  element.dataset.i18n = key;
+  element.textContent = t(key);
+}
+
+languageSelect.addEventListener("change", () => {
+  saveSelectedLanguage(languageSelect.value);
+  refreshAdminLanguage();
+});
+
+// Also used after Save / Reset in Manage Languages: if the current language
+// was switched off, the menu and page drop back to English straight away.
+function refreshAdminLanguage() {
+  renderLanguageOptions(languageSelect);
+  applyLanguage();
+  renderLoginMessage();
+  renderLanguageMessage();
+
+  // Score box labels in the question editor (relabelled, not redrawn, so
+  // anything typed in the form stays)
+  document.querySelectorAll(".score-label").forEach((label) => {
+    label.textContent = getMajorText(label.dataset.major, "title");
+  });
+
+  if (!dashboardPanel.classList.contains("hidden")) {
+    renderMajors();
+    renderQuestions();
+    renderRecords();
+    renderAnalytics();
+  }
+}
+
+// ── Data ─────────────────────────────────────────────────────────────────────
 
 /** Load majors from the database into majorInfo + majorKeys. */
 async function refreshMajors() {
@@ -75,24 +141,24 @@ function renderOptionInputs() {
     optionBlock.className = "col-12";
     optionBlock.innerHTML = `
       <div class="question-admin-card">
-        <h5>Option ${letter}</h5>
-        <label class="form-label">Answer Text</label>
+        <h5><span data-i18n="optionWord">${t("optionWord")}</span> ${letter}</h5>
+        <label class="form-label" data-i18n="answerText">${t("answerText")}</label>
         <input class="form-control mb-2 option-text" data-index="${index}" required />
 
-        <label class="form-label">Subtext</label>
+        <label class="form-label" data-i18n="subtextLabel">${t("subtextLabel")}</label>
         <input class="form-control mb-2 option-subtext" data-index="${index}" required />
 
-        <label class="form-label">Feedback</label>
+        <label class="form-label" data-i18n="feedbackLabel">${t("feedbackLabel")}</label>
         <input class="form-control mb-2 option-feedback" data-index="${index}" required />
 
         <div class="row g-2 mt-2">
           ${majorKeys.map((major) => `
-            <div class="col-6 col-md-3">
-              <label class="form-label">${majorInfo[major].title}</label>
+            <div class="col-6 score-field">
+              <label class="form-label score-label" data-major="${major}">${escapeHtml(getMajorText(major, "title"))}</label>
               <input class="form-control option-score" data-index="${index}" data-major="${major}" type="number" min="0" max="5" value="0" />
             </div>`).join("")}
         </div>
-        <p class="small text-secondary-emphasis mt-2 mb-0">Use 3 for the main matching major and 0 or 1 for weaker related majors.</p>
+        <p class="small text-secondary-emphasis mt-2 mb-0" data-i18n="scoreHint">${t("scoreHint")}</p>
       </div>`;
 
     optionInputs.appendChild(optionBlock);
@@ -107,7 +173,7 @@ async function showDashboard() {
   try {
     await refreshMajors();
   } catch (err) {
-    alert("Could not load majors from the database: " + err.message);
+    alert(t("majorsLoadFailed") + err.message);
     return;
   }
 
@@ -118,6 +184,8 @@ async function showDashboard() {
   renderLanguageManagement();
 }
 
+// ── Manage Languages ─────────────────────────────────────────────────────────
+
 function renderLanguageManagement() {
   const enabledLanguages = getEnabledLanguages();
 
@@ -125,6 +193,7 @@ function renderLanguageManagement() {
 
   Object.entries(languageConfig).forEach(([code, language]) => {
     const isEnabled = enabledLanguages.includes(code);
+    const stateKey = isEnabled ? "enabled" : "disabled";
 
     const card = document.createElement("div");
 
@@ -145,15 +214,43 @@ function renderLanguageManagement() {
           ${code === "en" ? "disabled" : ""}
         />
 
-        <span>
-          ${isEnabled ? "Enabled" : "Disabled"}
-        </span>
+        <span data-i18n="${stateKey}">${t(stateKey)}</span>
       </label>
     `;
 
     languageManagementList.appendChild(card);
   });
+
+  languageManagementList.querySelectorAll(".language-toggle").forEach((toggle) => {
+    toggle.addEventListener("change", () => {
+      setI18n(toggle.nextElementSibling, toggle.checked ? "enabled" : "disabled");
+      languageMessageKey = null;
+      renderLanguageMessage();
+    });
+  });
 }
+
+// English can't be switched off (its checkbox is disabled, so add it back)
+saveLanguagesBtn.addEventListener("click", () => {
+  const enabled = ["en"];
+  languageManagementList.querySelectorAll(".language-toggle:checked").forEach((toggle) => {
+    if (!enabled.includes(toggle.value)) enabled.push(toggle.value);
+  });
+
+  saveEnabledLanguages(enabled);
+  languageMessageKey = "languagesSaved";
+  renderLanguageManagement();
+  refreshAdminLanguage();
+});
+
+resetLanguagesBtn.addEventListener("click", () => {
+  localStorage.removeItem("enabledLanguages");
+  languageMessageKey = "languagesReset";
+  renderLanguageManagement();
+  refreshAdminLanguage();
+});
+
+// ── Login ────────────────────────────────────────────────────────────────────
 
 function showLogin() {
   loginPanel.classList.remove("hidden");
@@ -166,12 +263,12 @@ loginForm.addEventListener("submit", (event) => {
   const username = document.getElementById("username").value.trim();
   const password = document.getElementById("password").value.trim();
 
-  if (username === adminUser && password === adminPass) {
+  loginFailed = !(username === adminUser && password === adminPass);
+  renderLoginMessage();
+
+  if (!loginFailed) {
     sessionStorage.setItem("majorAdminLoggedIn", "true");
-    loginMessage.textContent = "";
     showDashboard();
-  } else {
-    loginMessage.textContent = "Incorrect username or password.";
   }
 });
 
@@ -190,18 +287,20 @@ function renderMajors() {
 
   majorKeys.forEach((code) => {
     const major = majorInfo[code];
+    const title = getMajorText(code, "title");
     const div = document.createElement("div");
     div.className = "question-admin-card";
     div.innerHTML = `
-      <div class="d-flex justify-content-between gap-3 flex-wrap">
-        <div>
-          <span class="section-label">Code: ${escapeHtml(code)}</span>
-          <h5>${escapeHtml(major.title)}</h5>
-          <p class="mb-0 text-secondary-emphasis">Tag: ${escapeHtml(major.personalityTags || "")}</p>
+      <div class="admin-card-row">
+        <div class="admin-card-text">
+          <span class="section-label">${escapeHtml(t("majorCode", { code }))}</span>
+          <h5>${escapeHtml(title)}</h5>
+          ${englishOriginal(title, major.title)}
+          <p class="mb-0 text-secondary-emphasis">${escapeHtml(t("majorTag", { tag: getMajorText(code, "personalityTags") }))}</p>
         </div>
-        <div class="d-flex gap-2 align-items-start">
-          <button class="btn btn--secondary btn-sm" data-edit-major="${escapeHtml(code)}">Edit</button>
-          <button class="btn btn--secondary btn-sm" data-delete-major="${escapeHtml(code)}">Delete</button>
+        <div class="admin-card-actions">
+          <button class="btn btn--secondary btn-sm" data-edit-major="${escapeHtml(code)}">${t("edit")}</button>
+          <button class="btn btn--secondary btn-sm" data-delete-major="${escapeHtml(code)}">${t("delete")}</button>
         </div>
       </div>`;
     majorsList.appendChild(div);
@@ -225,7 +324,7 @@ majorForm.addEventListener("submit", async (event) => {
     : majorCodeInput.value.trim().toLowerCase();
 
   if (!code) {
-    alert("Please enter a valid Major Code.");
+    alert(t("enterMajorCode"));
     return;
   }
 
@@ -258,16 +357,16 @@ majorForm.addEventListener("submit", async (event) => {
     renderMajors();
     renderOptionInputs(); // question editor needs a score box for the new major
 
-    alert("Major saved to the database.");
+    alert(t("majorSaved"));
   } catch (err) {
-    alert("Could not save major: " + err.message);
+    alert(t("majorSaveFailed") + err.message);
   }
 });
 
 function clearMajorForm() {
   editMajorCode.value = "";
   majorCodeInput.disabled = false;
-  majorFormTitle.textContent = "Add New Major";
+  setI18n(majorFormTitle, "addMajor");
   majorForm.reset();
 }
 
@@ -287,18 +386,18 @@ function loadMajorForEdit(code) {
   majorExploreInput.value = major.exploreText || "";
   majorTagInput.value = major.personalityTags || "";
 
-  majorFormTitle.textContent = "Edit Major";
+  setI18n(majorFormTitle, "editMajor");
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
 async function deleteMajor(code) {
   if (majorKeys.length <= 2) {
-    alert("You must have at least two majors for the quiz to work.");
+    alert(t("minTwoMajors"));
     return;
   }
 
   const title = majorInfo[code] ? majorInfo[code].title : code;
-  if (!confirm(`Delete the ${title} major? This also removes its scores from all questions.`)) {
+  if (!confirm(t("confirmDeleteMajor", { title }))) {
     return;
   }
 
@@ -315,31 +414,35 @@ async function deleteMajor(code) {
     renderMajors();
     renderOptionInputs();
   } catch (err) {
-    alert("Could not delete major: " + err.message);
+    alert(t("majorDeleteFailed") + err.message);
   }
 }
+
+// ── Questions ────────────────────────────────────────────────────────────────
 
 function renderQuestions() {
   questionsList.innerHTML = "";
 
   if (questions.length === 0) {
-    questionsList.innerHTML = `<p class="mb-0">No questions available. Add a question using the form.</p>`;
+    questionsList.innerHTML = `<p class="mb-0" data-i18n="noQuestions">${t("noQuestions")}</p>`;
     return;
   }
 
   questions.forEach((question, index) => {
+    const display = getDisplayQuestion(question);
     const div = document.createElement("div");
     div.className = "question-admin-card";
     div.innerHTML = `
-      <div class="d-flex justify-content-between gap-3 flex-wrap">
-        <div>
-          <span class="section-label">Question ${index + 1}</span>
-          <h5>${escapeHtml(question.text)}</h5>
-          <p class="mb-0 text-secondary-emphasis">${question.options.length} answer options</p>
+      <div class="admin-card-row">
+        <div class="admin-card-text">
+          <span class="section-label">${t("questionNumber", { n: index + 1 })}</span>
+          <h5>${escapeHtml(display.text)}</h5>
+          ${englishOriginal(display.text, question.text)}
+          <p class="mb-0 text-secondary-emphasis">${t("answerOptions", { count: question.options.length })}</p>
         </div>
-        <div class="d-flex gap-2">
-          <button class="btn btn--secondary btn-sm" data-edit="${index}">Edit</button>
-          <button class="btn btn--secondary btn-sm" data-delete="${index}">Delete</button>
+        <div class="admin-card-actions">
+          <button class="btn btn--secondary btn-sm" data-edit="${index}">${t("edit")}</button>
+          <button class="btn btn--secondary btn-sm" data-delete="${index}">${t("delete")}</button>
         </div>
       </div>`;
 
@@ -358,7 +461,7 @@ function renderQuestions() {
 function loadQuestionForEdit(index) {
   const question = questions[index];
   editIndex.value = index;
-  formTitle.textContent = "Edit Question";
+  setI18n(formTitle, "editQuestion");
   questionText.value = question.text;
 
   question.options.forEach((option, i) => {
@@ -376,7 +479,7 @@ function loadQuestionForEdit(index) {
 }
 
 async function deleteQuestion(index) {
-  if (!confirm("Delete this question?")) {
+  if (!confirm(t("confirmDeleteQuestion"))) {
     return;
   }
 
@@ -397,10 +500,10 @@ async function deleteQuestion(index) {
       clearQuestionForm();
       renderQuestions();
     } else {
-      alert("Failed to delete question: " + (result.error || "Unknown error"));
+      alert(t("questionDeleteFailed") + (result.error || t("unknownError")));
     }
   } catch (error) {
-    alert("Error deleting question: " + error.message);
+    alert(t("questionDeleteError") + error.message);
   }
 }
 
@@ -409,7 +512,7 @@ questionForm.addEventListener("submit", async (event) => {
 
   const text = questionText.value.trim();
   if (!text) {
-    alert("Please enter the question text.");
+    alert(t("enterQuestionText"));
     return;
   }
 
@@ -440,7 +543,7 @@ questionForm.addEventListener("submit", async (event) => {
 
   const hasEmptyOption = newQuestion.options.some((option) => !option.text || !option.subtext || !option.feedback);
   if (hasEmptyOption) {
-    alert("Please complete all option text, subtext, and feedback fields.");
+    alert(t("completeOptions"));
     return;
   }
 
@@ -469,18 +572,18 @@ questionForm.addEventListener("submit", async (event) => {
       userAnswers = new Array(questions.length).fill(null);
       clearQuestionForm();
       renderQuestions();
-      alert("Question saved successfully.");
+      alert(t("questionSaved"));
     } else {
-      alert("Failed to save question: " + (result.error || "Unknown error"));
+      alert(t("questionSaveFailed") + (result.error || t("unknownError")));
     }
   } catch (error) {
-    alert("Error saving question: " + error.message);
+    alert(t("questionSaveError") + error.message);
   }
 });
 
 function clearQuestionForm() {
   editIndex.value = "";
-  formTitle.textContent = "Add Question";
+  setI18n(formTitle, "addQuestion");
   questionForm.reset();
   document.querySelectorAll(".option-score").forEach((input) => {
     input.value = 0;
@@ -490,8 +593,10 @@ function clearQuestionForm() {
 clearFormBtn.addEventListener("click", clearQuestionForm);
 
 resetQuestionsBtn.addEventListener("click", () => {
-  alert("To reset questions to default, re-run the SQL file (chooseyourmajor.sql) in your database.");
+  alert(t("resetQuestionsInfo"));
 });
+
+// ── Records ──────────────────────────────────────────────────────────────────
 
 function renderRecords() {
   const records = getRecords();
@@ -499,7 +604,8 @@ function renderRecords() {
   recordDetails.innerHTML = "";
 
   if (records.length === 0) {
-    recordsTable.innerHTML = `<tr><td colspan="6">No quiz records yet.</td></tr>`;
+    openRecordId = null;
+    recordsTable.innerHTML = `<tr><td colspan="6" data-i18n="noRecords">${t("noRecords")}</td></tr>`;
     return;
   }
 
@@ -507,55 +613,72 @@ function renderRecords() {
     <tr>
       <td>${records.length - index}</td>
       <td>${escapeHtml(record.date)}</td>
-      <td>${escapeHtml(record.topMajorTitle)}</td>
+      <td>${escapeHtml(recordMajorTitle(record.topMajor, record.topMajorTitle))}</td>
       <td>${record.matchPercent}%</td>
-      <td>${escapeHtml(record.secondMajorTitle)} (${record.secondPercent}%)</td>
-      <td><button class="btn btn--secondary btn-sm" data-record="${record.id}">View</button></td>
+      <td>${escapeHtml(recordMajorTitle(record.secondMajor, record.secondMajorTitle))} (${record.secondPercent}%)</td>
+      <td><button class="btn btn--secondary btn-sm" data-record="${record.id}" data-i18n="view">${t("view")}</button></td>
     </tr>`).join("");
 
   document.querySelectorAll("[data-record]").forEach((btn) => {
     btn.addEventListener("click", () => showRecordDetails(Number(btn.dataset.record)));
   });
+
+  // Redrawn after a language change: keep the open record open
+  if (openRecordId !== null) showRecordDetails(openRecordId);
+}
+
+// Major name for a saved record in the chosen language. A record can outlive
+// its major (deleted in admin), so fall back to the title stored with it.
+function recordMajorTitle(code, storedTitle) {
+  return majorInfo[code] ? getMajorText(code, "title") : storedTitle;
 }
 
 function showRecordDetails(recordId) {
   const record = getRecords().find((item) => item.id === recordId);
 
   if (!record) {
+    openRecordId = null;
     return;
   }
+  openRecordId = recordId;
 
   const answers = record.answers.map((answerIndex, questionIndex) => {
     const question = questions[questionIndex] || null;
     const option = question && question.options ? question.options[answerIndex] : null;
+    const display = question ? getDisplayQuestion(question) : null;
+    const answerText = answerIndex === null
+      ? t("skippedAnswer")
+      : (option ? display.options[answerIndex].text : t("answerUnavailable"));
     return `
       <li>
-        <strong>Q${questionIndex + 1}:</strong> ${escapeHtml(question ? question.text : "Question unavailable")}<br />
-        <span>${escapeHtml(option ? option.text : "Answer unavailable")}</span>
+        <strong>${escapeHtml(t("questionShort", { n: questionIndex + 1 }))}:</strong> ${escapeHtml(display ? display.text : t("questionUnavailable"))}<br />
+        <span>${escapeHtml(answerText)}</span>
       </li>`;
   }).join("");
 
   recordDetails.innerHTML = `
     <div class="d-flex justify-content-between gap-3 flex-wrap">
       <div>
-        <p class="section-label">Record Details</p>
-        <h4>${escapeHtml(record.topMajorTitle)} - ${record.matchPercent}%</h4>
-        <p class="mb-2">Submitted: ${escapeHtml(record.date)}</p>
+        <p class="section-label">${t("recordDetails")}</p>
+        <h4>${escapeHtml(recordMajorTitle(record.topMajor, record.topMajorTitle))} - ${record.matchPercent}%</h4>
+        <p class="mb-2">${escapeHtml(t("submittedOn", { date: record.date }))}</p>
       </div>
-      <button class="btn btn--secondary btn-sm" id="closeRecordDetails">Close</button>
+      <button class="btn btn--secondary btn-sm" id="closeRecordDetails">${t("close")}</button>
     </div>
     <ul class="record-answer-list mt-3">${answers}</ul>`;
 
   recordDetails.classList.remove("hidden");
 
   document.getElementById("closeRecordDetails").addEventListener("click", () => {
+    openRecordId = null;
     recordDetails.classList.add("hidden");
   });
 }
 
 clearRecordsBtn.addEventListener("click", () => {
-  if (confirm("Clear all quiz records?")) {
+  if (confirm(t("confirmClearRecords"))) {
     localStorage.removeItem("majorQuizRecords");
+    openRecordId = null;
     renderRecords();
     renderAnalytics();
   }
@@ -563,11 +686,12 @@ clearRecordsBtn.addEventListener("click", () => {
 
 exportRecordsBtn.addEventListener("click", exportRecordsAsCsv);
 
+// CSV headers stay in English so exported files are the same whoever exports them
 function exportRecordsAsCsv() {
   const records = getRecords();
 
   if (records.length === 0) {
-    alert("There are no records to export.");
+    alert(t("noRecordsToExport"));
     return;
   }
 
@@ -587,18 +711,36 @@ function exportRecordsAsCsv() {
   URL.revokeObjectURL(url);
 }
 
+// ── Analytics  JOE-31 ────────────────────────────────────────────────────────────────
+
+function renderQuizStats() {
+  let stats = {};
+  try {
+    stats = JSON.parse(localStorage.getItem("majorQuizStats") || "{}");
+  } catch (e) { /* corrupted — show zeros */ }
+
+  const starts = stats.starts || 0;
+  const completions = stats.completions || 0;
+  quizStarts.textContent = starts;
+  quizCompletions.textContent = completions;
+  quizAbandoned.textContent = Math.max(starts - completions, 0);
+}
+
 function renderAnalytics() {
   const records = getRecords();
   totalRecords.textContent = records.length;
+  renderQuizStats();
 
   if (records.length === 0) {
-    topMajorStat.textContent = "None";
+    topMajorStat.textContent = t("none");
     averageMatch.textContent = "0%";
-    analyticsChart.innerHTML = "<p>No analytics available yet. Complete the quiz to generate records.</p>";
+    analyticsChart.innerHTML = `<p data-i18n="noAnalytics">${t("noAnalytics")}</p>`;
     return;
   }
 
-  const counts = { cs: 0, se: 0, cyber: 0, ds: 0 };
+  // Every current major, so majors added in admin show up too
+  const counts = {};
+  majorKeys.forEach((code) => { counts[code] = 0; });
   let matchTotal = 0;
 
   records.forEach((record) => {
@@ -609,14 +751,14 @@ function renderAnalytics() {
   });
 
   const topMajor = Object.entries(counts).sort((a, b) => b[1] - a[1])[0][0];
-  topMajorStat.textContent = majorInfo[topMajor].title;
+  topMajorStat.textContent = getMajorText(topMajor, "title");
   averageMatch.textContent = `${Math.round(matchTotal / records.length)}%`;
 
   analyticsChart.innerHTML = Object.entries(counts).map(([major, count]) => {
     const percent = Math.round((count / records.length) * 100);
     return `
       <div class="chart-bar">
-        <strong>${majorInfo[major].title}</strong>
+        <strong>${escapeHtml(getMajorText(major, "title"))}</strong>
         <div class="chart-track"><div class="chart-fill" style="width:${percent}%"></div></div>
         <span>${count}</span>
       </div>`;
@@ -644,6 +786,8 @@ document.querySelectorAll('[data-bs-toggle="tab"]').forEach((tabButton) => {
 majorKeys = Object.keys(majorInfo);
 
 renderOptionInputs();
+
+refreshAdminLanguage();
 
 if (isLoggedIn()) {
   showDashboard();

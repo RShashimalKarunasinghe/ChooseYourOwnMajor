@@ -18,7 +18,7 @@
         <span class="brand-mark"><img src="logo.svg" alt="Logo" /></span>
         <span class="brand-copy d-none d-sm-block">
           <strong>Choose Your Major</strong>
-          <small>Admin Dashboard</small>
+          <small data-i18n="adminNavDashboard">Admin Dashboard</small>
         </span>
       </a>
 
@@ -28,8 +28,12 @@
 
       <div class="collapse navbar-collapse" id="adminNav">
         <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-2 mt-3 mt-lg-0">
-          <li class="nav-item"><a class="nav-link" href="index.html">Quiz Page</a></li>
-          <li class="nav-item"><a class="nav-link active" href="admin.html">Admin Dashboard</a></li>
+          <li class="nav-item"><a class="nav-link" href="index.html" data-i18n="adminNavQuiz">Quiz Page</a></li>
+          <li class="nav-item"><a class="nav-link active" href="admin.html" data-i18n="adminNavDashboard">Admin Dashboard</a></li>
+          <li class="nav-item">
+            <!-- Same language setting as the quiz page; options come from Manage Languages -->
+            <select id="languageSelect" data-i18n-aria="languageLabel"></select>
+          </li>
         </ul>
       </div>
     </div>
@@ -41,27 +45,27 @@
         <div class="row align-items-center justify-content-center g-4 min-vh-login">
           <div class="col-lg-6">
             <div class="login-intro-card">
-              <p class="section-label">Administration Area</p>
-              <h1>Control your quiz content from one place.</h1>
-              <p>
+              <p class="section-label" data-i18n="loginArea">Administration Area</p>
+              <h1 data-i18n="loginTitle">Control your quiz content from one place.</h1>
+              <p data-i18n="loginIntro">
                 Manage questions, review submissions, and monitor recommendation trends using a cleaner red and black dashboard.
               </p>
 
               <div class="login-feature-grid">
                 <div>
                   <span>01</span>
-                  <strong>Edit quiz content</strong>
-                  <p>Add, update, delete, or reset quiz questions.</p>
+                  <strong data-i18n="loginFeature1">Edit quiz content</strong>
+                  <p data-i18n="loginFeature1Desc">Add, update, delete, or reset quiz questions.</p>
                 </div>
                 <div>
                   <span>02</span>
-                  <strong>Review records</strong>
-                  <p>Check submitted results and export a CSV file.</p>
+                  <strong data-i18n="loginFeature2">Review records</strong>
+                  <p data-i18n="loginFeature2Desc">Check submitted results and export a CSV file.</p>
                 </div>
                 <div>
                   <span>03</span>
-                  <strong>Track analytics</strong>
-                  <p>View recommendation patterns and match levels.</p>
+                  <strong data-i18n="loginFeature3">Track analytics</strong>
+                  <p data-i18n="loginFeature3Desc">View recommendation patterns and match levels.</p>
                 </div>
               </div>
             </div>
@@ -69,28 +73,28 @@
 
           <div class="col-lg-5">
             <div class="admin-panel login-card">
-              <p class="section-label">Secure Login</p>
-              <h2>Admin Access</h2>
-              <p class="panel-subtitle">Enter the demo admin credentials to continue.</p>
+              <p class="section-label" data-i18n="secureLogin">Secure Login</p>
+              <h2 data-i18n="adminAccess">Admin Access</h2>
+              <p class="panel-subtitle" data-i18n="loginSubtitle">Enter the demo admin credentials to continue.</p>
 
               <form id="loginForm">
                 <div class="mb-3">
-                  <label class="form-label" for="username">Username</label>
+                  <label class="form-label" for="username" data-i18n="username">Username</label>
                   <input id="username" class="form-control" type="text" autocomplete="username" placeholder="admin" required />
                 </div>
 
                 <div class="mb-3">
-                  <label class="form-label" for="password">Password</label>
+                  <label class="form-label" for="password" data-i18n="password">Password</label>
                   <input id="password" class="form-control" type="password" autocomplete="current-password" placeholder="admin123" required />
                 </div>
 
                 <div class="demo-credentials">
-                  <span>Demo Login</span>
+                  <span data-i18n="demoLogin">Demo Login</span>
                   <strong>admin / admin123</strong>
                 </div>
 
                 <p id="loginMessage" class="form-message"></p>
-                <button class="btn btn--primary w-100" type="submit">Login to Dashboard</button>
+                <button class="btn btn--primary w-100" type="submit" data-i18n="loginButton">Login to Dashboard</button>
               </form>
             </div>
           </div>
@@ -106,36 +110,36 @@
               <span class="brand-mark"><img src="logo.svg" alt="Logo" /></span>
               <span>
                 <strong>Major Admin</strong>
-                <small>Control Centre</small>
+                <small data-i18n="sidebarSubtitle">Control Centre</small>
               </span>
             </a>
 
             <div class="sidebar-status">
               <span></span>
-              <p>Logged in as administrator</p>
+              <p data-i18n="sidebarStatus">Logged in as administrator</p>
             </div>
 
             <ul class="nav admin-tabs" id="adminTabs" role="tablist">
               <li class="nav-item" role="presentation">
-                <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#questionsTab" type="button" role="tab">Manage Questions</button>
+                <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#questionsTab" type="button" role="tab" data-i18n="tabQuestions">Manage Questions</button>
               </li>
               <li class="nav-item" role="presentation">
-                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#majorsTab" type="button" role="tab">Manage Majors</button>
+                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#majorsTab" type="button" role="tab" data-i18n="tabMajors">Manage Majors</button>
               </li>
               <li class="nav-item" role="presentation">
-                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#recordsTab" type="button" role="tab">View Records</button>
+                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#recordsTab" type="button" role="tab" data-i18n="tabRecords">View Records</button>
               </li>
               <li class="nav-item" role="presentation">
-                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#analyticsTab" type="button" role="tab">Analytics</button>
+                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#analyticsTab" type="button" role="tab" data-i18n="tabAnalytics">Analytics</button>
               </li>
               <li class="nav-item" role="presentation">
-                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#languagesTab" type="button" role="tab">Manage Languages</button>
+                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#languagesTab" type="button" role="tab" data-i18n="tabLanguages">Manage Languages</button>
               </li>
             </ul>
 
             <div class="sidebar-actions">
-              <a href="index.html" class="btn btn--secondary w-100">Open Quiz Page</a>
-              <button id="logoutBtn" class="btn btn--secondary w-100">Logout</button>
+              <a href="index.html" class="btn btn--secondary w-100" data-i18n="openQuizPage">Open Quiz Page</a>
+              <button id="logoutBtn" type="button" class="btn btn--secondary w-100" data-i18n="logout">Logout</button>
             </div>
           </div>
         </aside>
@@ -143,31 +147,31 @@
         <section class="admin-workspace">
           <header class="workspace-hero">
             <div>
-              <p class="section-label">Dashboard</p>
-              <h1>Admin Control Centre</h1>
-              <p>Manage quiz questions, records, and analytics with consistent typography across both pages.</p>
+              <p class="section-label" data-i18n="dashLabel">Dashboard</p>
+              <h1 data-i18n="dashTitle">Admin Control Centre</h1>
+              <p data-i18n="dashIntro">Manage quiz questions, records, and analytics with consistent typography across both pages.</p>
             </div>
             <div class="workspace-badge">
-              <span>System Status</span>
-              <strong>Active</strong>
+              <span data-i18n="systemStatus">System Status</span>
+              <strong data-i18n="statusActive">Active</strong>
             </div>
           </header>
 
           <div class="quick-stats-grid">
             <div class="quick-stat-card">
-              <span>Quiz Management</span>
-              <strong>Question Builder</strong>
-              <p>Add, edit, delete, and reset questions.</p>
+              <span data-i18n="cardQuizLabel">Quiz Management</span>
+              <strong data-i18n="cardQuizTitle">Question Builder</strong>
+              <p data-i18n="cardQuizDesc">Add, edit, delete, and reset questions.</p>
             </div>
             <div class="quick-stat-card">
-              <span>Submissions</span>
-              <strong>Records Table</strong>
-              <p>View attempts and export results.</p>
+              <span data-i18n="cardRecordsLabel">Submissions</span>
+              <strong data-i18n="cardRecordsTitle">Records Table</strong>
+              <p data-i18n="cardRecordsDesc">View attempts and export results.</p>
             </div>
             <div class="quick-stat-card">
-              <span>Insights</span>
-              <strong>Analytics View</strong>
-              <p>Track common recommendations.</p>
+              <span data-i18n="cardInsightsLabel">Insights</span>
+              <strong data-i18n="cardInsightsTitle">Analytics View</strong>
+              <p data-i18n="cardInsightsDesc">Track common recommendations.</p>
             </div>
           </div>
 
@@ -178,26 +182,27 @@
                   <div class="admin-panel sticky-editor">
                     <div class="panel-heading">
                       <div>
-                        <p class="section-label">Question Editor</p>
-                        <h2 id="formTitle">Add Question</h2>
+                        <p class="section-label" data-i18n="questionEditor">Question Editor</p>
+                        <!-- data-i18n switches to editQuestion while editing (admin.js) -->
+                        <h2 id="formTitle" data-i18n="addQuestion">Add Question</h2>
                       </div>
-                      <span class="panel-pill">Editor</span>
+                      <span class="panel-pill" data-i18n="pillEditor">Editor</span>
                     </div>
 
                     <form id="questionForm">
                       <input type="hidden" id="editIndex" value="" />
 
                       <div class="mb-3">
-                        <label class="form-label" for="questionText">Question Text</label>
-                        <textarea id="questionText" class="form-control" rows="3" placeholder="Enter the question shown to students" required></textarea>
+                        <label class="form-label" for="questionText" data-i18n="questionTextLabel">Question Text</label>
+                        <textarea id="questionText" class="form-control" rows="3" placeholder="Enter the question shown to students" data-i18n-placeholder="questionTextPlaceholder" required></textarea>
                       </div>
 
                       <div id="optionInputs" class="row g-3"></div>
 
                       <div class="editor-actions">
-                        <button class="btn btn--primary" type="submit">Save Question</button>
-                        <button id="clearFormBtn" class="btn btn--secondary" type="button">Clear</button>
-                        <button id="resetQuestionsBtn" class="btn btn--secondary" type="button">Reset Default</button>
+                        <button class="btn btn--primary" type="submit" data-i18n="saveQuestion">Save Question</button>
+                        <button id="clearFormBtn" class="btn btn--secondary" type="button" data-i18n="clear">Clear</button>
+                        <button id="resetQuestionsBtn" class="btn btn--secondary" type="button" data-i18n="resetDefault">Reset Default</button>
                       </div>
                     </form>
                   </div>
@@ -207,10 +212,10 @@
                   <div class="admin-panel">
                     <div class="panel-heading">
                       <div>
-                        <p class="section-label">Current Quiz</p>
-                        <h2>Questions</h2>
+                        <p class="section-label" data-i18n="currentQuiz">Current Quiz</p>
+                        <h2 data-i18n="questionsHeading">Questions</h2>
                       </div>
-                      <span class="panel-pill">Live List</span>
+                      <span class="panel-pill" data-i18n="pillLiveList">Live List</span>
                     </div>
                     <div id="questionsList" class="question-list"></div>
                   </div>
@@ -226,48 +231,49 @@
                     <div class="admin-panel sticky-editor">
                       <div class="panel-heading">
                         <div>
-                          <p class="section-label">Major Editor</p>
-                          <h2 id="majorFormTitle">Add New Major</h2>
+                          <p class="section-label" data-i18n="majorEditor">Major Editor</p>
+                          <!-- data-i18n switches to editMajor while editing (admin.js) -->
+                          <h2 id="majorFormTitle" data-i18n="addMajor">Add New Major</h2>
                         </div>
-                        <span class="panel-pill">Editor</span>
+                        <span class="panel-pill" data-i18n="pillEditor">Editor</span>
                       </div>
 
                       <form id="majorForm">
                         <input type="hidden" id="editMajorCode" value="" />
 
                         <div class="mb-3">
-                          <label class="form-label" for="majorCodeInput">Major Code (e.g., 'ai')</label>
-                          <input id="majorCodeInput" class="form-control" type="text" placeholder="Short unique code" required />
+                          <label class="form-label" for="majorCodeInput" data-i18n="majorCodeLabel">Major Code (e.g., 'ai')</label>
+                          <input id="majorCodeInput" class="form-control" type="text" placeholder="Short unique code" data-i18n-placeholder="majorCodePlaceholder" required />
                         </div>
 
                         <div class="mb-3">
-                          <label class="form-label" for="majorTitleInput">Title</label>
-                          <input id="majorTitleInput" class="form-control" type="text" placeholder="e.g., Artificial Intelligence" required />
+                          <label class="form-label" for="majorTitleInput" data-i18n="majorTitleLabel">Title</label>
+                          <input id="majorTitleInput" class="form-control" type="text" placeholder="e.g., Artificial Intelligence" data-i18n-placeholder="majorTitlePlaceholder" required />
                         </div>
 
                         <div class="mb-3">
-                          <label class="form-label" for="majorCareersInput">Career Suggestions</label>
-                          <textarea id="majorCareersInput" class="form-control" rows="2" placeholder="List potential careers" required></textarea>
+                          <label class="form-label" for="majorCareersInput" data-i18n="careersLabel">Career Suggestions</label>
+                          <textarea id="majorCareersInput" class="form-control" rows="2" placeholder="List potential careers" data-i18n-placeholder="careersPlaceholder" required></textarea>
                         </div>
 
                         <div class="mb-3">
-                          <label class="form-label" for="majorReasonInput">Result Reason</label>
-                          <textarea id="majorReasonInput" class="form-control" rows="2" placeholder="Why did they get this result?" required></textarea>
+                          <label class="form-label" for="majorReasonInput" data-i18n="reasonLabel">Result Reason</label>
+                          <textarea id="majorReasonInput" class="form-control" rows="2" placeholder="Why did they get this result?" data-i18n-placeholder="reasonPlaceholder" required></textarea>
                         </div>
 
                         <div class="mb-3">
-                          <label class="form-label" for="majorExploreInput">Explore Text</label>
-                          <textarea id="majorExploreInput" class="form-control" rows="2" placeholder="What is this major about?" required></textarea>
+                          <label class="form-label" for="majorExploreInput" data-i18n="exploreLabel">Explore Text</label>
+                          <textarea id="majorExploreInput" class="form-control" rows="2" placeholder="What is this major about?" data-i18n-placeholder="explorePlaceholder" required></textarea>
                         </div>
 
                         <div class="mb-3">
-                          <label class="form-label" for="majorTagInput">Personality Tag</label>
-                          <input id="majorTagInput" class="form-control" type="text" placeholder="e.g., Future Innovator" required />
+                          <label class="form-label" for="majorTagInput" data-i18n="tagLabel">Personality Tag</label>
+                          <input id="majorTagInput" class="form-control" type="text" placeholder="e.g., Future Innovator" data-i18n-placeholder="tagPlaceholder" required />
                         </div>
 
                         <div class="editor-actions">
-                          <button class="btn btn--primary" type="submit">Save Major</button>
-                          <button id="clearMajorFormBtn" class="btn btn--secondary" type="button">Clear</button>
+                          <button class="btn btn--primary" type="submit" data-i18n="saveMajor">Save Major</button>
+                          <button id="clearMajorFormBtn" class="btn btn--secondary" type="button" data-i18n="clear">Clear</button>
                         </div>
                       </form>
                     </div>
@@ -278,10 +284,10 @@
                     <div class="admin-panel">
                       <div class="panel-heading">
                         <div>
-                          <p class="section-label">Current Offerings</p>
-                          <h2>ICT Majors</h2>
+                          <p class="section-label" data-i18n="currentOfferings">Current Offerings</p>
+                          <h2 data-i18n="ictMajors">ICT Majors</h2>
                         </div>
-                        <span class="panel-pill">Live List</span>
+                        <span class="panel-pill" data-i18n="pillLiveList">Live List</span>
                       </div>
                       <div id="majorsList" class="question-list"></div>
                     </div>
@@ -294,13 +300,13 @@
               <div class="admin-panel">
                 <div class="panel-heading records-heading">
                   <div>
-                    <p class="section-label">Submissions</p>
-                    <h2>Quiz Records</h2>
-                    <p class="panel-subtitle mb-0">Review submitted quiz attempts and export records for reporting.</p>
+                    <p class="section-label" data-i18n="cardRecordsLabel">Submissions</p>
+                    <h2 data-i18n="recordsTitle">Quiz Records</h2>
+                    <p class="panel-subtitle mb-0" data-i18n="recordsDesc">Review submitted quiz attempts and export records for reporting.</p>
                   </div>
                   <div class="records-actions">
-                    <button id="exportRecordsBtn" class="btn btn--secondary">Export CSV</button>
-                    <button id="clearRecordsBtn" class="btn btn--secondary">Clear Records</button>
+                    <button id="exportRecordsBtn" type="button" class="btn btn--secondary" data-i18n="exportCsv">Export CSV</button>
+                    <button id="clearRecordsBtn" type="button" class="btn btn--secondary" data-i18n="clearRecords">Clear Records</button>
                   </div>
                 </div>
 
@@ -309,11 +315,11 @@
                     <thead>
                       <tr>
                         <th>#</th>
-                        <th>Date</th>
-                        <th>Recommended Major</th>
-                        <th>Match</th>
-                        <th>Alternative</th>
-                        <th>Details</th>
+                        <th data-i18n="colDate">Date</th>
+                        <th data-i18n="colRecommended">Recommended Major</th>
+                        <th data-i18n="colMatch">Match</th>
+                        <th data-i18n="colAlternative">Alternative</th>
+                        <th data-i18n="colDetails">Details</th>
                       </tr>
                     </thead>
                     <tbody id="recordsTable"></tbody>
@@ -328,20 +334,42 @@
               <div class="row g-4 mb-4">
                 <div class="col-md-4">
                   <div class="stat-card">
-                    <span>Total Records</span>
+                    <span data-i18n="totalRecordsLabel">Total Records</span>
                     <strong id="totalRecords">0</strong>
                   </div>
                 </div>
                 <div class="col-md-4">
                   <div class="stat-card">
-                    <span>Most Common Major</span>
+                    <span data-i18n="mostCommonMajor">Most Common Major</span>
                     <strong id="topMajorStat">None</strong>
                   </div>
                 </div>
                 <div class="col-md-4">
                   <div class="stat-card">
-                    <span>Average Match</span>
+                    <span data-i18n="averageMatchLabel">Average Match</span>
                     <strong id="averageMatch">0%</strong>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Counted on this browser by the quiz page (majorQuizStats) -->
+              <div class="row g-4 mb-4">
+                <div class="col-md-4">
+                  <div class="stat-card">
+                    <span data-i18n="quizStartsLabel">Quiz Starts</span>
+                    <strong id="quizStarts">0</strong>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="stat-card">
+                    <span data-i18n="completionsLabel">Completions</span>
+                    <strong id="quizCompletions">0</strong>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="stat-card">
+                    <span data-i18n="notFinishedLabel">Started but Not Finished</span>
+                    <strong id="quizAbandoned">0</strong>
                   </div>
                 </div>
               </div>
@@ -349,11 +377,11 @@
               <div class="admin-panel">
                 <div class="panel-heading">
                   <div>
-                    <p class="section-label">Major Distribution</p>
-                    <h2>Recommendation Analytics</h2>
-                    <p class="panel-subtitle mb-0">See how often each major appears as the top recommendation.</p>
+                    <p class="section-label" data-i18n="majorDistribution">Major Distribution</p>
+                    <h2 data-i18n="recAnalytics">Recommendation Analytics</h2>
+                    <p class="panel-subtitle mb-0" data-i18n="recAnalyticsDesc">See how often each major appears as the top recommendation.</p>
                   </div>
-                  <span class="panel-pill">Insights</span>
+                  <span class="panel-pill" data-i18n="pillInsights">Insights</span>
                 </div>
                 <div id="analyticsChart" class="chart-row mt-4"></div>
               </div>
@@ -363,28 +391,18 @@
               <div class="admin-panel">
                 <div class="panel-heading">
                   <div>
-                    <p class="section-label">Language Management</p>
-                    <h2>Available Languages</h2>
-                    <p class="panel-subtitle mb-0">
+                    <p class="section-label" data-i18n="langManagement">Language Management</p>
+                    <h2 data-i18n="availableLanguages">Available Languages</h2>
+                    <p class="panel-subtitle mb-0" data-i18n="langDesc">
                       Choose which languages are available to quiz users.
                     </p>
                   </div>
-                  <span class="panel-pill">Settings</span>
+                  <span class="panel-pill" data-i18n="pillSettings">Settings</span>
                 </div>
                 <div id="languageManagementList" class="language-management-list"></div>
                 <div class="editor-actions mt-4">
-                  <button
-                    id="saveLanguagesBtn"
-                    class="btn btn--primary"
-                    type="button">
-                    Save Languages
-                  </button>
-                  <button
-                    id="resetLanguagesBtn"
-                    class="btn btn--secondary"
-                    type="button">
-                    Reset Default
-                  </button>
+                  <button id="saveLanguagesBtn" class="btn btn--primary" type="button" data-i18n="saveLanguages">Save Languages</button>
+                  <button id="resetLanguagesBtn" class="btn btn--secondary" type="button" data-i18n="resetDefault">Reset Default</button>
                 </div>
                 <p id="languageSaveMessage" class="form-message"></p>
               </div>

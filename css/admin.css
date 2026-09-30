@@ -253,6 +253,11 @@
   height: 100%;
   display: flex;
   flex-direction: column;
+  /* On short screens the tabs + buttons don't fit the fixed height:
+     scroll inside the box instead of spilling out below it */
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
   padding: 20px;
   border: 1px solid var(--border);
   border-radius: 30px;
@@ -334,6 +339,65 @@
   display: grid;
   gap: 10px;
   margin-top: auto;
+  padding-top: 16px; /* keeps a gap above the buttons when the box scrolls */
+}
+
+/* Question / major cards: text on the left, Edit + Delete top-right at their
+   normal size. Long titles wrap instead of pushing the buttons around, so
+   every card looks the same whatever the language. */
+.admin-card-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.admin-card-text {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+/* Score boxes in the question editor: two per row, long major names wrap
+   inside their own column, and the boxes line up along the bottom */
+.score-field {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.score-label {
+  font-size: 0.82rem;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+
+/* English original under a translated question / major title */
+.admin-card-original {
+  margin: -4px 0 6px;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.admin-card-actions {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+/* Very narrow screens: buttons go under the text instead */
+@media (max-width: 480px) {
+  .admin-card-row {
+    flex-direction: column;
+  }
+}
+
+/* Language menu in the admin top bar */
+.admin-topbar #languageSelect {
+  height: 42px;
+  min-width: 130px;
+  margin-left: 8px;
 }
 
 .admin-workspace {

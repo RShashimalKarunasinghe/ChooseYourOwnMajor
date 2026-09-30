@@ -1044,3 +1044,130 @@ select {
 #formMessage:not(:empty)::before {
   content: "\26A0\FE0F  ";
 }
+
+/* ── Merged from fixed (1) ──────────────────────────────────────────────── */
+
+/* Loading overlay while questions load from the database */
+.loading-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 22px;
+  background: var(--bg);
+  transition: opacity 0.5s ease, visibility 0.5s ease;
+}
+.loading-overlay.fade-out {
+  opacity: 0;
+  visibility: hidden;
+}
+.loader-ring {
+  width: 52px;
+  height: 52px;
+  border: 3px solid var(--border);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+.loading-overlay p {
+  color: var(--muted);
+  font-weight: 700;
+  font-size: 0.92rem;
+  letter-spacing: 0.04em;
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Question slides in from the direction you moved */
+.question-card.slide-left  { animation-name: questionSlideLeft; }
+.question-card.slide-right { animation-name: questionSlideRight; }
+@keyframes questionSlideLeft {
+  from { opacity: 0; transform: translateX(40px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes questionSlideRight {
+  from { opacity: 0; transform: translateX(-40px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+/* Quiz / result section entrance */
+.card.section-enter {
+  animation: sectionIn 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes sectionIn {
+  from { opacity: 0; transform: translateY(30px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Resume banner sits between the highlights and the Start button */
+.hero__text .resume-banner {
+  margin: 24px 0 0;
+}
+
+/* Answers that led to this result */
+.answer-breakdown { display: flex; flex-direction: column; gap: 10px; margin-top: 6px; }
+.breakdown-row {
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--secondary);
+  font-size: 0.88rem;
+}
+.breakdown-row--match {
+  border-color: rgba(210, 33, 28, 0.35);
+  background: rgba(210, 33, 28, 0.06);
+}
+.breakdown-q { font-weight: 600; margin-bottom: 4px; font-size: 0.85rem; color: var(--muted); }
+.breakdown-a { color: var(--text); }
+.breakdown-key {
+  display: inline-block;
+  width: 22px;
+  height: 22px;
+  line-height: 22px;
+  text-align: center;
+  border-radius: 6px;
+  background: var(--primary);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  margin-right: 4px;
+}
+.breakdown-badge {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 2px 8px;
+  border-radius: 20px;
+  background: rgba(210, 33, 28, 0.14);
+  border: 1px solid rgba(210, 33, 28, 0.25);
+  color: var(--primary);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+/* Related majors */
+.related-majors { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+.related-tag {
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--border-strong);
+  background: var(--secondary);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-soft);
+  transition: 0.18s ease;
+}
+.related-tag:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+  background: rgba(210, 33, 28, 0.07);
+}
+
+/* Download + QR */
+#downloadBtn { margin-top: 8px; }
+.qr-panel { text-align: center; }
+.qr-panel img { border-radius: 8px; }
+.qr-caption { font-size: 12px; color: var(--muted); margin-top: 6px; }
