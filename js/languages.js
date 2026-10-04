@@ -631,6 +631,12 @@ const resultTranslations = {
 
     alternativeMatch: "Alternative match",
 
+    recommendationEvidenceTitle:
+      "Your answers that contributed to this result:",
+
+    noRecommendationEvidence:
+      "No specific answer contributed directly to this recommendation.",
+
     resultReason: {
       cs: "Your answers show strong interest in logical reasoning, complex technical problem-solving, and computational thinking.",
       se: "Your answers show strong interest in building practical systems, creating applications, and developing useful digital solutions.",
@@ -686,6 +692,12 @@ const resultTranslations = {
 
     alternativeMatch: "其他匹配",
 
+    recommendationEvidenceTitle:
+      "促成这一推荐结果的答案：",
+
+    noRecommendationEvidence:
+      "没有具体答案直接促成这一推荐结果。",
+
     resultReason: {
       cs: "你的回答显示出你对逻辑推理、复杂技术问题解决和计算思维有浓厚兴趣。",
       se: "你的回答显示出你对构建实用系统、创建应用程序和开发数字解决方案有浓厚兴趣。",
@@ -722,6 +734,12 @@ const resultTranslations = {
 
     alternativeMatch: "Coincidencia alternativa",
 
+    recommendationEvidenceTitle:
+      "Tus respuestas que contribuyeron a este resultado:",
+
+    noRecommendationEvidence:
+      "Ninguna respuesta específica contribuyó directamente a esta recomendación.",
+
     resultReason: {
       cs: "Tus respuestas muestran un gran interés por el razonamiento lógico, la resolución de problemas técnicos complejos y el pensamiento computacional.",
       se: "Tus respuestas muestran un gran interés por crear sistemas prácticos, desarrollar aplicaciones y construir soluciones digitales útiles.",
@@ -757,6 +775,12 @@ const resultTranslations = {
     possibleMatch: "Correspondance possible",
 
     alternativeMatch: "Correspondance alternative",
+
+    recommendationEvidenceTitle:
+      "Vos réponses qui ont contribué à ce résultat :",
+
+    noRecommendationEvidence:
+      "Aucune réponse spécifique n’a directement contribué à cette recommandation.",
 
     resultReason: {
       cs: "Vos réponses montrent un fort intérêt pour le raisonnement logique, la résolution de problèmes techniques complexes et la pensée informatique.",

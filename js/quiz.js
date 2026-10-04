@@ -48,8 +48,10 @@ function calculateResult() {
     ds: 0
   };
 
+  // Calculate total scores
   userAnswers.forEach((selectedOptionIndex, questionIndex) => {
     const option = questions[questionIndex].options[selectedOptionIndex];
+
     if (!option) return;
 
     Object.entries(option.scores).forEach(([major, score]) => {
@@ -57,22 +59,54 @@ function calculateResult() {
     });
   });
 
+  // Rank majors
   const ranking = Object.entries(totals)
     .sort((a, b) => b[1] - a[1]);
 
   const [topMajor, topScore] = ranking[0];
   const [secondMajor, secondScore] = ranking[1];
 
-  const totalPoints = Object.values(totals).reduce((sum, score) => sum + score, 0);
-  const topPercent = totalPoints ? Math.round((topScore / totalPoints) * 100) : 0;
-  const secondPercent = totalPoints ? Math.round((secondScore / totalPoints) * 100) : 0;
+  // Calculate percentages
+  const totalPoints = Object.values(totals)
+    .reduce((sum, score) => sum + score, 0);
+
+  const topPercent = totalPoints
+    ? Math.round((topScore / totalPoints) * 100)
+    : 0;
+
+  const secondPercent = totalPoints
+    ? Math.round((secondScore / totalPoints) * 100)
+    : 0;
+
+  // Find answers that contributed to the recommended major
+  const contributingAnswers = [];
+
+  userAnswers.forEach((selectedOptionIndex, questionIndex) => {
+    const question = questions[questionIndex];
+    const option = question?.options[selectedOptionIndex];
+
+    if (!option) return;
+
+    const contribution = option.scores[topMajor];
+
+    if (contribution) {
+      contributingAnswers.push({
+        questionNumber: questionIndex + 1,
+        questionText: question.text,
+        answerKey: option.key,
+        answerText: option.text,
+        score: contribution
+      });
+    }
+  });
 
   return {
     totals,
     topMajor,
     secondMajor,
     topPercent,
-    secondPercent
+    secondPercent,
+    contributingAnswers
   };
 }
 
