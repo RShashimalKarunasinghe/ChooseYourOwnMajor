@@ -18,6 +18,8 @@ function fetchAllQuestions(PDO $db, bool $showAll = false): array {
     // Add active column if it doesn't exist yet
     try { $db->exec('ALTER TABLE questions ADD COLUMN active TINYINT(1) NOT NULL DEFAULT 1'); }
     catch (Throwable $e) {}
+    try { $db->exec('ALTER TABLE options ADD COLUMN scores_json TEXT NULL'); }
+    catch (Throwable $e) {}
 
     $where = $showAll ? '' : 'WHERE active = 1';
     $questions = $db->query("SELECT * FROM questions $where ORDER BY sort_order, id")->fetchAll();
@@ -31,7 +33,7 @@ function fetchAllQuestions(PDO $db, bool $showAll = false): array {
             'text'     => $opt['option_text'],
             'subtext'  => $opt['subtext'],
             'feedback' => $opt['feedback'],
-            'scores'   => array_filter([
+            'scores'   => json_decode($opt['scores_json'] ?? '', true) ?: array_filter([
                 'cs'    => (int) $opt['score_cs'],
                 'se'    => (int) $opt['score_se'],
                 'cyber' => (int) $opt['score_cyber'],
@@ -48,12 +50,14 @@ function fetchAllQuestions(PDO $db, bool $showAll = false): array {
 }
 
 function upsertOptions(PDO $db, int $questionId, array $options): void {
+    try { $db->exec('ALTER TABLE options ADD COLUMN scores_json TEXT NULL'); }
+    catch (Throwable $e) {}
     $db->prepare('DELETE FROM options WHERE question_id = ?')->execute([$questionId]);
     $stmt = $db->prepare(
         'INSERT INTO options
            (question_id, option_key, option_text, subtext, feedback,
-            score_cs, score_se, score_cyber, score_ds)
-         VALUES (?,?,?,?,?,?,?,?,?)'
+                score_cs, score_se, score_cyber, score_ds, scores_json)
+            VALUES (?,?,?,?,?,?,?,?,?,?)'
     );
     foreach ($options as $opt) {
         $scores = $opt['scores'] ?? [];
@@ -67,6 +71,7 @@ function upsertOptions(PDO $db, int $questionId, array $options): void {
             (int) ($scores['se']    ?? 0),
             (int) ($scores['cyber'] ?? 0),
             (int) ($scores['ds']    ?? 0),
+            json_encode($scores),
         ]);
     }
 }

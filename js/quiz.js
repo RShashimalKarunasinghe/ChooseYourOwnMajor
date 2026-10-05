@@ -38,12 +38,7 @@ function getProgressPercent() {
 }
 
 function calculateResult() {
-  const totals = {
-    cs: 0,
-    se: 0,
-    cyber: 0,
-    ds: 0
-  };
+  const totals = Object.fromEntries(majorKeys.map((major) => [major, 0]));
 
   userAnswers.forEach((selectedOptionIndex, questionIndex) => {
     const option = questions[questionIndex].options[selectedOptionIndex];

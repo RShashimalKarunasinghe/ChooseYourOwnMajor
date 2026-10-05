@@ -8,53 +8,39 @@
 const API_BASE = './api';
 
 // ── Static major metadata ─────────────────────────────────────────────────────
-const majorInfo = {
-  cs: {
-    code: 'cs',
-    title: 'Computer Science',
-    careers: 'You may enjoy roles such as computer scientist, systems analyst, research developer, or algorithm-focused engineer.',
-    resultReason: 'Your answers show strong interest in logical reasoning, complex technical problem-solving, and computational thinking.',
-    exploreText: 'Computer Science focuses on algorithms, programming concepts, systems thinking, and solving technical problems at a deeper level.'
-  },
-  se: {
-    code: 'se',
-    title: 'Software Development',
-    careers: 'You may enjoy roles such as software developer, web developer, mobile app developer, or application engineer.',
-    resultReason: 'Your answers show strong interest in building applications, designing practical solutions, and creating digital products for users.',
-    exploreText: 'Software Development focuses on designing, building, testing, and improving applications, websites, and digital systems.'
-  },
-  cyber: {
-    code: 'cyber',
-    title: 'Cyber Security',
-    careers: 'You may enjoy roles such as cyber security analyst, security consultant, penetration tester, or security operations specialist.',
-    resultReason: 'Your answers show strong interest in protecting systems, managing risks, and identifying digital threats and vulnerabilities.',
-    exploreText: 'Cyber Security focuses on defending systems, networks, and data against cyber threats and improving digital safety.'
-  },
-  ds: {
-    code: 'ds',
-    title: 'Data Science',
-    careers: 'You may enjoy roles such as data analyst, data specialist, business intelligence analyst, or insight-driven technical professional.',
-    resultReason: 'Your answers show strong interest in patterns, data interpretation, and using information to support understanding and decisions.',
-    exploreText: 'Data Science focuses on analysing data, finding trends, visualising results, and supporting data-driven decision-making.'
-  }
-};
-
-const personalityTags = {
-  cs:    'Problem Solver',
-  se:    'Creative Builder',
-  cyber: 'Risk Protector',
-  ds:    'Insight Explorer'
-};
+const majorInfo = {};
+const majorKeys = [];
+const personalityTags = {};
 
 /** Fetch editable result descriptions from MySQL. */
 async function loadMajorInfoFromServer() {
   const res = await fetch(`${API_BASE}/major_info.php`);
   if (!res.ok) throw new Error(`Failed to load major information: ${res.status}`);
   const rows = await res.json();
+  majorKeys.length = 0;
+  Object.keys(majorInfo).forEach((key) => delete majorInfo[key]);
   rows.forEach((row) => {
-    if (majorInfo[row.code]) Object.assign(majorInfo[row.code], row);
+    majorKeys.push(row.code);
+    majorInfo[row.code] = row;
+    personalityTags[row.code] = row.personalityTag || row.title;
   });
   return majorInfo;
+}
+
+async function createMajor(payload) {
+  const res = await fetch(`${API_BASE}/major_info.php`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  });
+  if (!res.ok) throw new Error((await res.json()).error || `Failed to create major: ${res.status}`);
+  return res.json();
+}
+
+async function deleteMajor(code) {
+  const res = await fetch(`${API_BASE}/major_info.php?code=${encodeURIComponent(code)}`, { method: 'DELETE' });
+  if (!res.ok) throw new Error((await res.json()).error || `Failed to delete major: ${res.status}`);
+  return res.json();
 }
 
 /** Admin: update one major's result descriptions. */
@@ -100,7 +86,7 @@ async function fetchRecordsFromServer() {
 }
 
 function calculateMajorAnalytics(records) {
-  const counts = { cs: 0, se: 0, cyber: 0, ds: 0 };
+  const counts = Object.fromEntries(majorKeys.map((major) => [major, 0]));
 
   records.forEach((record) => {
     if (counts[record.topMajor] !== undefined) counts[record.topMajor]++;

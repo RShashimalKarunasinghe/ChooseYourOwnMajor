@@ -24,7 +24,6 @@ const averageMatch    = document.getElementById('averageMatch');
 const analyticsChart  = document.getElementById('analyticsChart');
 const majorInfoList   = document.getElementById('majorInfoList');
 
-const majorKeys = ['cs', 'se', 'cyber', 'ds'];
 const adminUser = 'admin';
 const adminPass = 'admin123';
 
@@ -57,6 +56,7 @@ async function showDashboard() {
   loginPanel.classList.add('hidden');
   dashboardPanel.classList.remove('hidden');
   await renderMajorInfo();
+  renderOptionInputs();
   renderQuestions();
   renderRecords();
   renderAnalytics();
@@ -468,10 +468,12 @@ function escapeHtml(value) {
 
 // ── init ──────────────────────────────────────────────────────────────────────
 
-renderOptionInputs();
-
-if (isLoggedIn()) {
-  showDashboard();
-} else {
-  showLogin();
+async function initialiseAdmin() {
+  if (isLoggedIn()) {
+    showDashboard();
+  } else {
+    showLogin();
+  }
 }
+
+initialiseAdmin();

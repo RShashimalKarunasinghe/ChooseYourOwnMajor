@@ -1,3 +1,4 @@
+-- Run this in MySQL Workbench to set up the database
 
 CREATE DATABASE IF NOT EXISTS major_quiz
   CHARACTER SET utf8mb4
@@ -26,6 +27,7 @@ CREATE TABLE IF NOT EXISTS options (
   score_se     TINYINT NOT NULL DEFAULT 0,
   score_cyber  TINYINT NOT NULL DEFAULT 0,
   score_ds     TINYINT NOT NULL DEFAULT 0,
+  scores_json  TEXT NULL,
   FOREIGN KEY (question_id) REFERENCES questions(id) ON DELETE CASCADE
 );
 
@@ -50,6 +52,8 @@ CREATE TABLE IF NOT EXISTS major_info (
   careers      TEXT NOT NULL,
   result_reason TEXT NOT NULL,
   explore_text TEXT NOT NULL,
+  personality_tag VARCHAR(100) NOT NULL DEFAULT '',
+  sort_order   INT NOT NULL DEFAULT 0,
   updated_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
