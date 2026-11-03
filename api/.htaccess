@@ -1,0 +1,4 @@
+# Do not let browsers download the SQL file or config.
+<FilesMatch "\.(sql)$">
+    Require all denied
+</FilesMatch>

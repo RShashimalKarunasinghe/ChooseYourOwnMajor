@@ -79,12 +79,16 @@ function upsertOptions(PDO $db, int $questionId, array $options): void {
 // ── routing ──────────────────────────────────────────────────────────────────
 
 try {
+    // Everything except reading the active quiz questions needs an admin session.
+    if ($method !== 'GET') requireAdminApi();
+
     $db = getDB();
 
     // GET — list questions
     // ?all=1 used by admin tools; default returns only active questions for the quiz
     if ($method === 'GET') {
         $showAll = isset($_GET['all']) && $_GET['all'] === '1';
+        if ($showAll) requireAdminApi();
         echo json_encode(fetchAllQuestions($db, $showAll));
         exit;
     }
@@ -98,7 +102,7 @@ try {
         $db->exec('ALTER TABLE questions AUTO_INCREMENT = 1');
 
         // Re-run the seed (same data as schema.sql)
-        $seed = file_get_contents(__DIR__ . '/../schema.sql');
+        $seed = file_get_contents(__DIR__ . '/schema.sql');
         // Extract only INSERT statements
         preg_match_all('/INSERT INTO (?:questions|options)[^;]+;/s', $seed, $matches);
         foreach ($matches[0] as $insert) {

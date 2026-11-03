@@ -1,26 +1,8 @@
-const loginPanel = document.getElementById('loginPanel');
-const dashboardPanel = document.getElementById('dashboardPanel');
-const loginForm = document.getElementById('loginForm');
-const loginMessage = document.getElementById('loginMessage');
 const majorForm = document.getElementById('majorForm');
 const majorList = document.getElementById('majorList');
 const formMessage = document.getElementById('formMessage');
 
-function showManager() {
-  loginPanel.classList.add('hidden');
-  dashboardPanel.classList.remove('hidden');
-  loadMajors();
-}
-
-loginForm.addEventListener('submit', (event) => {
-  event.preventDefault();
-  if (document.getElementById('username').value.trim() === 'admin' && document.getElementById('password').value.trim() === 'admin123') {
-    sessionStorage.setItem('majorAdminLoggedIn', 'true');
-    showManager();
-  } else {
-    loginMessage.textContent = 'Incorrect username or password.';
-  }
-});
+majorForm.querySelector('[data-rc-add]').addEventListener('click', () => addRelatedRow(majorForm, '', '', true));
 
 async function loadMajors() {
   majorList.innerHTML = '<p>Loading majors...</p>';
@@ -43,17 +25,31 @@ majorForm.addEventListener('submit', async (event) => {
   event.preventDefault();
   formMessage.textContent = 'Saving...';
   try {
-    await createMajor({
+    const newMajor = {
       code: document.getElementById('majorCode').value.trim().toLowerCase(),
       title: document.getElementById('majorTitle').value.trim(),
       personalityTag: document.getElementById('personalityTag').value.trim(),
       careers: document.getElementById('careers').value.trim(),
       resultReason: document.getElementById('resultReason').value.trim(),
-      exploreText: document.getElementById('exploreText').value.trim()
-    });
+      exploreText: document.getElementById('exploreText').value.trim(),
+      qrLink: normaliseQrLink(document.getElementById('qrLink').value)
+    };
+    if (newMajor.qrLink === null) {
+      formMessage.textContent = 'Please enter a valid web link for the QR code, or leave it empty.';
+      return;
+    }
+    const related = readRelatedRows(majorForm);
+    if (related.error) {
+      formMessage.textContent = related.error;
+      return;
+    }
+    newMajor.relatedCourses = related.courses;
+    await createMajor(newMajor);
     majorForm.reset();
+    majorForm.querySelector('[data-rc-list]').innerHTML = '';
     formMessage.textContent = 'Major added successfully.';
     loadMajors();
+    autoTranslateTexts(collectMajorTexts(newMajor));
   } catch (error) {
     formMessage.textContent = `Save failed: ${error.message}`;
   }
@@ -73,4 +69,4 @@ function escapeHtml(value) {
   return String(value).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#039;');
 }
 
-if (sessionStorage.getItem('majorAdminLoggedIn') === 'true') showManager();
+loadMajors();

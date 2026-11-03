@@ -1,11 +1,6 @@
 // js/admin.js
 // Admin dashboard — all data operations hit the PHP/MySQL API.
 
-const loginPanel      = document.getElementById('loginPanel');
-const dashboardPanel  = document.getElementById('dashboardPanel');
-const loginForm       = document.getElementById('loginForm');
-const loginMessage    = document.getElementById('loginMessage');
-const logoutBtn       = document.getElementById('logoutBtn');
 const questionForm    = document.getElementById('questionForm');
 const optionInputs    = document.getElementById('optionInputs');
 const questionsList   = document.getElementById('questionsList');
@@ -24,37 +19,10 @@ const averageMatch    = document.getElementById('averageMatch');
 const analyticsChart  = document.getElementById('analyticsChart');
 const majorInfoList   = document.getElementById('majorInfoList');
 
-const adminUser = 'admin';
-const adminPass = 'admin123';
-
-function isLoggedIn() {
-  return sessionStorage.getItem('majorAdminLoggedIn') === 'true';
-}
-
-// ── auth ──────────────────────────────────────────────────────────────────────
-
-loginForm.addEventListener('submit', (event) => {
-  event.preventDefault();
-  const username = document.getElementById('username').value.trim();
-  const password = document.getElementById('password').value.trim();
-
-  if (username === adminUser && password === adminPass) {
-    sessionStorage.setItem('majorAdminLoggedIn', 'true');
-    loginMessage.textContent = '';
-    showDashboard();
-  } else {
-    loginMessage.textContent = 'Incorrect username or password.';
-  }
-});
-
-logoutBtn.addEventListener('click', () => {
-  sessionStorage.removeItem('majorAdminLoggedIn');
-  showLogin();
-});
+// Login is handled on the server (login.php / logout.php). admin.php only
+// loads for a logged-in session, and every write API call is checked again.
 
 async function showDashboard() {
-  loginPanel.classList.add('hidden');
-  dashboardPanel.classList.remove('hidden');
   await renderMajorInfo();
   renderOptionInputs();
   renderQuestions();
@@ -96,6 +64,22 @@ async function renderMajorInfo() {
           <label class="form-label" for="${major}-exploreText">Explore description</label>
           <textarea id="${major}-exploreText" class="form-control" name="exploreText" rows="3" required>${escapeHtml(info.exploreText)}</textarea>
         </div>
+        <div class="mb-3">
+          <label class="form-label" for="${major}-qrLink">QR code link (optional)</label>
+          <div class="qr-editor">
+            <div class="qr-editor-field">
+              <input id="${major}-qrLink" class="form-control" name="qrLink" type="text" inputmode="url" autocomplete="off" placeholder="https://www.swinburne.edu.au/..." value="${escapeHtml(info.qrLink || '')}" />
+              <p class="small text-secondary-emphasis mt-2 mb-0">Students who get this major see this link as a QR code on their result. Clear the box and save to remove the QR code.</p>
+            </div>
+            <div class="qr-preview" data-qr-preview aria-live="polite"></div>
+          </div>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Related courses &amp; minors (optional)</label>
+          <p class="small text-secondary-emphasis mb-2">Shown on the result page for this major. Add a web link to make a course clickable; without a link it is shown as plain text.</p>
+          <div class="rc-list" data-rc-list></div>
+          <button type="button" class="btn btn--secondary btn-sm" data-rc-add>+ Add related course</button>
+        </div>
         <div class="editor-actions align-items-center">
           <button class="btn btn--primary" type="submit">Save ${escapeHtml(info.title)}</button>
           <span class="form-message major-info-message" aria-live="polite"></span>
@@ -105,7 +89,34 @@ async function renderMajorInfo() {
 
   document.querySelectorAll('[data-major-form]').forEach((form) => {
     form.addEventListener('submit', handleMajorInfoSubmit);
+
+    // Live QR preview: updates as the admin types, so they can see what students will get.
+    const input = form.querySelector('[name="qrLink"]');
+    input.addEventListener('input', () => updateQrPreview(form));
+    updateQrPreview(form);
+
+    // Related courses: one editable row per course
+    (majorInfo[form.dataset.majorForm].relatedCourses || []).forEach((course) => addRelatedRow(form, course.name, course.url));
+    form.querySelector('[data-rc-add]').addEventListener('click', () => addRelatedRow(form, '', '', true));
   });
+}
+
+/** Show the QR code (or why there isn't one) for the link currently typed in a major's form. */
+function updateQrPreview(form) {
+  const preview = form.querySelector('[data-qr-preview]');
+  const value = form.querySelector('[name="qrLink"]').value;
+  const clean = normaliseQrLink(value);
+
+  preview.classList.remove('has-qr');
+  if (clean === '') {
+    preview.textContent = 'No QR code';
+  } else if (clean === null) {
+    preview.textContent = 'Not a valid web link';
+  } else if (renderQr(preview, clean)) {
+    preview.classList.add('has-qr');
+  } else {
+    preview.textContent = 'Link too long for a QR code';
+  }
 }
 
 async function handleMajorInfoSubmit(event) {
@@ -114,20 +125,33 @@ async function handleMajorInfoSubmit(event) {
   const code = form.dataset.majorForm;
   const message = form.querySelector('.major-info-message');
   const payload = Object.fromEntries(new FormData(form).entries());
+
+  const qrLink = normaliseQrLink(payload.qrLink);
+  if (qrLink === null) {
+    message.textContent = 'Please enter a valid web link (for example https://www.swinburne.edu.au) or leave the QR link empty.';
+    return;
+  }
+  payload.qrLink = qrLink;
+  form.querySelector('[name="qrLink"]').value = qrLink;
+  updateQrPreview(form);
+
+  const related = readRelatedRows(form);
+  if (related.error) {
+    message.textContent = related.error;
+    return;
+  }
+  payload.relatedCourses = related.courses;
+
   message.textContent = 'Saving...';
 
   try {
     await updateMajorInfo(code, payload);
     Object.assign(majorInfo[code], payload);
     message.textContent = 'Saved successfully.';
+    autoTranslateTexts(collectMajorTexts(majorInfo[code]));
   } catch (err) {
     message.textContent = `Save failed: ${err.message}`;
   }
-}
-
-function showLogin() {
-  loginPanel.classList.remove('hidden');
-  dashboardPanel.classList.add('hidden');
 }
 
 // ── option input builder ──────────────────────────────────────────────────────
@@ -272,6 +296,7 @@ questionForm.addEventListener('submit', async (event) => {
     clearQuestionForm();
     renderQuestions();
     alert('Question saved successfully.');
+    autoTranslateTexts(collectQuestionTexts({ text, options }));
   } catch (err) {
     alert('Failed to save question: ' + err.message);
   }
@@ -446,6 +471,10 @@ async function renderAnalytics() {
   }).join('');
 }
 
+// ── translations ──────────────────────────────────────────────────────────────
+
+document.getElementById('translateMissingBtn').addEventListener('click', translateAllMissing);
+
 // ── tab refresh ───────────────────────────────────────────────────────────────
 
 document.querySelectorAll('[data-bs-toggle="tab"]').forEach((tabButton) => {
@@ -468,12 +497,4 @@ function escapeHtml(value) {
 
 // ── init ──────────────────────────────────────────────────────────────────────
 
-async function initialiseAdmin() {
-  if (isLoggedIn()) {
-    showDashboard();
-  } else {
-    showLogin();
-  }
-}
-
-initialiseAdmin();
+showDashboard();

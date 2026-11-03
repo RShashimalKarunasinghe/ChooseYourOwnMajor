@@ -7,6 +7,16 @@
 // Keep the API path relative so the project can run from any XAMPP sub-folder.
 const API_BASE = './api';
 
+/** fetch() wrapper: if the admin session has expired, go back to the login page. */
+async function apiFetch(url, options) {
+  const res = await fetch(url, options);
+  if (res.status === 401) {
+    window.location.href = 'login.php';
+    throw new Error('Admin login required');
+  }
+  return res;
+}
+
 // ── Static major metadata ─────────────────────────────────────────────────────
 const majorInfo = {};
 const majorKeys = [];
@@ -14,7 +24,7 @@ const personalityTags = {};
 
 /** Fetch editable result descriptions from MySQL. */
 async function loadMajorInfoFromServer() {
-  const res = await fetch(`${API_BASE}/major_info.php`);
+  const res = await apiFetch(`${API_BASE}/major_info.php`);
   if (!res.ok) throw new Error(`Failed to load major information: ${res.status}`);
   const rows = await res.json();
   majorKeys.length = 0;
@@ -28,7 +38,7 @@ async function loadMajorInfoFromServer() {
 }
 
 async function createMajor(payload) {
-  const res = await fetch(`${API_BASE}/major_info.php`, {
+  const res = await apiFetch(`${API_BASE}/major_info.php`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload)
@@ -38,19 +48,23 @@ async function createMajor(payload) {
 }
 
 async function deleteMajor(code) {
-  const res = await fetch(`${API_BASE}/major_info.php?code=${encodeURIComponent(code)}`, { method: 'DELETE' });
+  const res = await apiFetch(`${API_BASE}/major_info.php?code=${encodeURIComponent(code)}`, { method: 'DELETE' });
   if (!res.ok) throw new Error((await res.json()).error || `Failed to delete major: ${res.status}`);
   return res.json();
 }
 
 /** Admin: update one major's result descriptions. */
 async function updateMajorInfo(code, payload) {
-  const res = await fetch(`${API_BASE}/major_info.php?code=${encodeURIComponent(code)}`, {
+  const res = await apiFetch(`${API_BASE}/major_info.php?code=${encodeURIComponent(code)}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload)
   });
-  if (!res.ok) throw new Error(`Failed to update major information: ${res.status}`);
+  if (!res.ok) {
+    let detail = '';
+    try { detail = (await res.json()).error || ''; } catch (e) {}
+    throw new Error(detail || `Failed to update major information: ${res.status}`);
+  }
   return res.json();
 }
 
@@ -62,14 +76,14 @@ async function loadQuestionsFromServer(mode) {
   const url = mode === 'all'
     ? `${API_BASE}/questions.php?all=1`
     : `${API_BASE}/questions.php`;
-  const res = await fetch(url);
+  const res = await apiFetch(url);
   if (!res.ok) throw new Error(`Failed to load questions: ${res.status}`);
   return res.json();
 }
 
 /** Save a new quiz record to MySQL. */
 async function saveRecordToServer(record) {
-  const res = await fetch(`${API_BASE}/records.php`, {
+  const res = await apiFetch(`${API_BASE}/records.php`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(record)
@@ -78,9 +92,16 @@ async function saveRecordToServer(record) {
   return res.json();
 }
 
-/** Fetch all records from MySQL. */
+/** Public summary for the student result screen: { total, counts: { major: n } }. */
+async function fetchRecordSummary() {
+  const res = await apiFetch(`${API_BASE}/records.php?summary=1`, { cache: 'no-store' });
+  if (!res.ok) throw new Error(`Failed to fetch record summary: ${res.status}`);
+  return res.json();
+}
+
+/** Fetch all records from MySQL (admin only). */
 async function fetchRecordsFromServer() {
-  const res = await fetch(`${API_BASE}/records.php`, { cache: 'no-store' });
+  const res = await apiFetch(`${API_BASE}/records.php`, { cache: 'no-store' });
   if (!res.ok) throw new Error(`Failed to fetch records: ${res.status}`);
   return res.json();
 }
@@ -103,14 +124,14 @@ function calculateMajorAnalytics(records) {
 
 /** Delete all records from MySQL. */
 async function clearRecordsOnServer() {
-  const res = await fetch(`${API_BASE}/records.php`, { method: 'DELETE' });
+  const res = await apiFetch(`${API_BASE}/records.php`, { method: 'DELETE' });
   if (!res.ok) throw new Error(`Failed to clear records: ${res.status}`);
   return res.json();
 }
 
 /** Admin: create a new question. */
 async function createQuestion(payload) {
-  const res = await fetch(`${API_BASE}/questions.php`, {
+  const res = await apiFetch(`${API_BASE}/questions.php`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload)
@@ -121,7 +142,7 @@ async function createQuestion(payload) {
 
 /** Admin: update an existing question by id. */
 async function updateQuestion(id, payload) {
-  const res = await fetch(`${API_BASE}/questions.php?id=${id}`, {
+  const res = await apiFetch(`${API_BASE}/questions.php?id=${id}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload)
@@ -132,14 +153,14 @@ async function updateQuestion(id, payload) {
 
 /** Admin: delete a question by id. */
 async function deleteQuestionOnServer(id) {
-  const res = await fetch(`${API_BASE}/questions.php?id=${id}`, { method: 'DELETE' });
+  const res = await apiFetch(`${API_BASE}/questions.php?id=${id}`, { method: 'DELETE' });
   if (!res.ok) throw new Error(`Failed to delete question: ${res.status}`);
   return res.json();
 }
 
 /** Admin: reset all questions to defaults. */
 async function resetQuestionsOnServer() {
-  const res = await fetch(`${API_BASE}/questions.php?reset=1`, { method: 'POST' });
+  const res = await apiFetch(`${API_BASE}/questions.php?reset=1`, { method: 'POST' });
   if (!res.ok) throw new Error(`Failed to reset questions: ${res.status}`);
   return res.json(); // returns { ok, questions }
 }

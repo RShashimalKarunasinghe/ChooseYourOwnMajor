@@ -1,3 +1,7 @@
+<?php
+require_once __DIR__ . '/api/auth.php';
+requireAdminPage();
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -29,77 +33,15 @@
       <div class="collapse navbar-collapse" id="adminNav">
         <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-2 mt-3 mt-lg-0">
           <li class="nav-item"><a class="nav-link" href="index.html">Quiz Page</a></li>
-          <li class="nav-item"><a class="nav-link" href="major-manager.html">Manage Majors</a></li>
-          <li class="nav-item"><a class="nav-link active" href="admin.html">Admin Dashboard</a></li>
+          <li class="nav-item"><a class="nav-link" href="major-manager.php">Manage Majors</a></li>
+          <li class="nav-item"><a class="nav-link active" href="admin.php">Admin Dashboard</a></li>
         </ul>
       </div>
     </div>
   </nav>
 
   <main class="admin-page">
-    <section id="loginPanel" class="admin-login-screen">
-      <div class="container">
-        <div class="row align-items-center justify-content-center g-4 min-vh-login">
-          <div class="col-lg-6">
-            <div class="login-intro-card">
-              <p class="section-label">Administration Area</p>
-              <h1>Control your quiz content from one place.</h1>
-              <p>
-                Manage questions, review submissions, and monitor recommendation trends using a cleaner red and black dashboard.
-              </p>
-
-              <div class="login-feature-grid">
-                <div>
-                  <span>01</span>
-                  <strong>Edit quiz content</strong>
-                  <p>Add, update, delete, or reset quiz questions.</p>
-                </div>
-                <div>
-                  <span>02</span>
-                  <strong>Review records</strong>
-                  <p>Check submitted results and export a CSV file.</p>
-                </div>
-                <div>
-                  <span>03</span>
-                  <strong>Track analytics</strong>
-                  <p>View recommendation patterns and match levels.</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="col-lg-5">
-            <div class="admin-panel login-card">
-              <p class="section-label">Secure Login</p>
-              <h2>Admin Access</h2>
-              <p class="panel-subtitle">Enter the demo admin credentials to continue.</p>
-
-              <form id="loginForm">
-                <div class="mb-3">
-                  <label class="form-label" for="username">Username</label>
-                  <input id="username" class="form-control" type="text" autocomplete="username" placeholder="admin" required />
-                </div>
-
-                <div class="mb-3">
-                  <label class="form-label" for="password">Password</label>
-                  <input id="password" class="form-control" type="password" autocomplete="current-password" placeholder="admin123" required />
-                </div>
-
-                <div class="demo-credentials">
-                  <span>Demo Login</span>
-                  <strong>admin / admin123</strong>
-                </div>
-
-                <p id="loginMessage" class="form-message"></p>
-                <button class="btn btn--primary w-100" type="submit">Login to Dashboard</button>
-              </form>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section id="dashboardPanel" class="admin-dashboard hidden">
+    <section id="dashboardPanel" class="admin-dashboard">
       <div class="admin-layout">
         <aside class="admin-sidebar">
           <div class="sidebar-inner">
@@ -132,10 +74,12 @@
             </ul>
 
             <div class="sidebar-actions">
-              <a href="major-manager.html" class="btn btn--secondary w-100">Manage Majors</a>
+              <a href="major-manager.php" class="btn btn--secondary w-100">Manage Majors</a>
               <a href="index.html" class="btn btn--secondary w-100">Open Quiz Page</a>
-              <button id="logoutBtn" class="btn btn--secondary w-100">Logout</button>
+              <button id="translateMissingBtn" type="button" class="btn btn--secondary w-100">Translate missing text</button>
+              <a href="logout.php" class="btn btn--secondary w-100">Logout</a>
             </div>
+            <p id="translateStatus" class="form-message" role="status" aria-live="polite"></p>
           </div>
         </aside>
 
@@ -307,6 +251,10 @@
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="js/data.js"></script>
+  <script src="js/vendor/qrcode.js"></script>
+  <script src="js/qr.js"></script>
+  <script src="js/related-editor.js"></script>
+  <script src="js/auto-translate.js"></script>
   <script src="js/admin.js"></script>
 </body>
 </html>

@@ -1,6 +1,7 @@
 <?php
 // api/records.php
-// GET    /api/records.php            → list all records (newest first)
+// GET    /api/records.php            → list all records (newest first)  [admin]
+// GET    /api/records.php?summary=1  → public counts per major
 // POST   /api/records.php            → save a new record
 // DELETE /api/records.php            → clear all records
 
@@ -11,8 +12,24 @@ $method = $_SERVER['REQUEST_METHOD'];
 try {
     $db = getDB();
 
-    // GET — list all records
+    // GET ?summary=1 — public counts per major (used on the student result screen)
+    if ($method === 'GET' && isset($_GET['summary'])) {
+        $rows = $db->query(
+            'SELECT top_major, COUNT(*) AS n FROM records GROUP BY top_major'
+        )->fetchAll();
+        $counts = [];
+        $total  = 0;
+        foreach ($rows as $r) {
+            $counts[$r['top_major']] = (int) $r['n'];
+            $total += (int) $r['n'];
+        }
+        echo json_encode(['total' => $total, 'counts' => (object) $counts]);
+        exit;
+    }
+
+    // GET — list all records (admin only: contains every student's answers)
     if ($method === 'GET') {
+        requireAdminApi();
         $rows = $db->query(
             'SELECT * FROM records ORDER BY submitted_at DESC'
         )->fetchAll();
@@ -69,8 +86,9 @@ try {
         exit;
     }
 
-    // DELETE — clear all records
+    // DELETE — clear all records (admin only)
     if ($method === 'DELETE') {
+        requireAdminApi();
         $db->exec('DELETE FROM records');
         echo json_encode(['ok' => true]);
         exit;

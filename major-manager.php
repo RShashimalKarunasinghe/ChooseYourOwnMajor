@@ -1,3 +1,7 @@
+<?php
+require_once __DIR__ . '/api/auth.php';
+requireAdminPage();
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -14,28 +18,15 @@
 <body class="admin-body">
   <nav class="navbar navbar-expand-lg admin-topbar">
     <div class="container-fluid px-3 px-lg-4">
-      <a class="navbar-brand admin-brand" href="admin.html">
+      <a class="navbar-brand admin-brand" href="admin.php">
         <span class="brand-copy"><strong>Choose Your Major</strong><small>Major Management</small></span>
       </a>
-      <a class="nav-link" href="admin.html">Back to Dashboard</a>
+      <a class="nav-link" href="admin.php">Back to Dashboard</a>
     </div>
   </nav>
 
   <main class="admin-page">
-    <section id="loginPanel" class="admin-login-screen">
-      <div class="container"><div class="row justify-content-center min-vh-login"><div class="col-md-6 col-lg-5">
-        <div class="admin-panel login-card">
-          <p class="section-label">Administration Area</p><h1>Manage Majors</h1>
-          <form id="loginForm">
-            <label class="form-label" for="username">Username</label><input id="username" class="form-control mb-3" required />
-            <label class="form-label" for="password">Password</label><input id="password" class="form-control mb-3" type="password" required />
-            <p id="loginMessage" class="form-message"></p><button class="btn btn--primary w-100">Login</button>
-          </form>
-        </div>
-      </div></div></div>
-    </section>
-
-    <section id="dashboardPanel" class="hidden">
+    <section id="dashboardPanel">
       <div class="container py-5">
         <div class="workspace-hero mb-4"><p class="section-label">Major Catalogue</p><h1>Add or remove quiz majors</h1><p>New majors automatically become score options in question management and editable result entries.</p></div>
         <div class="row g-4 align-items-start">
@@ -48,7 +39,12 @@
               <label class="form-label" for="careers">Career suggestions</label><textarea id="careers" class="form-control mb-3" rows="3" required></textarea>
               <label class="form-label" for="resultReason">Why this major was recommended</label><textarea id="resultReason" class="form-control mb-3" rows="3" required></textarea>
               <label class="form-label" for="exploreText">Explore description</label><textarea id="exploreText" class="form-control mb-3" rows="3" required></textarea>
-              <p id="formMessage" class="form-message"></p><button class="btn btn--primary" type="submit">Add Major</button>
+              <label class="form-label" for="qrLink">QR code link (optional)</label><input id="qrLink" class="form-control mb-3" type="text" inputmode="url" autocomplete="off" placeholder="https://www.swinburne.edu.au/..." />
+              <label class="form-label">Related courses &amp; minors (optional)</label>
+              <p class="small text-secondary-emphasis mb-2">Shown on the result page for this major. Add a web link to make a course clickable.</p>
+              <div class="rc-list" data-rc-list></div>
+              <button type="button" class="btn btn--secondary btn-sm mb-3" data-rc-add>+ Add related course</button>
+              <p id="formMessage" class="form-message"></p><p id="translateStatus" class="form-message" role="status" aria-live="polite"></p><button class="btn btn--primary" type="submit">Add Major</button>
             </form>
           </div></div>
           <div class="col-lg-7"><div class="admin-panel"><div class="panel-heading"><div><p class="section-label">Live Catalogue</p><h2>Current Majors</h2></div></div><div id="majorList" class="major-info-list mt-4"></div></div></div>
@@ -58,6 +54,10 @@
   </main>
 
   <script src="js/data.js"></script>
+  <script src="js/vendor/qrcode.js"></script>
+  <script src="js/qr.js"></script>
+  <script src="js/related-editor.js"></script>
+  <script src="js/auto-translate.js"></script>
   <script src="js/major-manager.js"></script>
 </body>
 </html>

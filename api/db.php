@@ -1,11 +1,9 @@
 <?php
-// api/db.php  — shared DB connection
-// Adjust DB_USER / DB_PASS if you set a root password in XAMPP
+// api/db.php — shared DB connection for the JSON API.
+// Connection details live in config.php.
 
-define('DB_HOST', 'localhost');
-define('DB_USER', 'root');
-define('DB_PASS', '');          // default XAMPP has no root password
-define('DB_NAME', 'major_quiz');
+require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/auth.php';
 
 function getDB(): PDO {
     static $pdo = null;
@@ -20,13 +18,5 @@ function getDB(): PDO {
     return $pdo;
 }
 
-// Allow requests from the same origin (XAMPP localhost)
+// The site and API share one origin, so no CORS headers are needed.
 header('Content-Type: application/json');
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type');
-
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    http_response_code(204);
-    exit;
-}
